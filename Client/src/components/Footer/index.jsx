@@ -18,7 +18,7 @@ import { BsTwitterX } from "react-icons/bs";
 import Drawer from "@mui/material/Drawer";
 import { IoCloseSharp } from "react-icons/io5";
 import CartPanel from "../CartPanel";
-import { MyContext } from "../../App";
+import { MyContext } from "../../context/MyContext";
 
 const Footer = () => {
   const context = useContext(MyContext);

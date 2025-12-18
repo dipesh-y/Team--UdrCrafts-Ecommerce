@@ -4,20 +4,48 @@ import Button from "@mui/material/Button";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import { MyContext } from "../../App";
+import { MyContext } from "../../context/MyContext";
+import { postData } from "../../utils/api";
 
 const Login = () => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
-  const [formFields, setFormsFields] = useState({
-    email: "",
-    password: "",
-  });
+  const [formFields, setFormFields] = useState({ email: "", password: "" });
+  const [isLoading, setIsLoading] = useState(false);
   const context = useContext(MyContext);
-  const histoty = useNavigate();
+  const navigate = useNavigate();
+
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setFormFields((prev) => ({ ...prev, [name]: value }));
+  };
 
   const forgotPassword = () => {
-    context.openAlertBox("success", "OTP Send");
-    histoty("/verify");
+    context.openAlertBox("success", "OTP sent (use Forgot Password flow)");
+    navigate("/forgot-password");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formFields.email || !formFields.password) {
+      context.openAlertBox("error", "Please enter email and password");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await postData('/api/login', formFields);
+      if (res && res.success) {
+        context.openAlertBox('success', res.message || 'Login successful');
+        if (typeof context.setIsLogin === 'function') context.setIsLogin(true);
+        navigate('/');
+      } else {
+        context.openAlertBox('error', res.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error(err);
+      context.openAlertBox('error', 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -28,7 +56,7 @@ const Login = () => {
             Login to your account
           </h3>
 
-          <form className="w-full mt-5">
+          <form className="w-full mt-5" onSubmit={handleSubmit}>
             <div className="form-group w-full mb-5">
               <TextField
                 type="email"
@@ -36,7 +64,9 @@ const Login = () => {
                 label="Email Id *"
                 variant="outlined"
                 className="w-full"
-                name="name"
+                name="email"
+                onChange={onChange}
+                value={formFields.email}
               />
             </div>
 
@@ -48,6 +78,8 @@ const Login = () => {
                 type={isPasswordShow ? "text" : "password"}
                 className="w-full"
                 name="password"
+                onChange={onChange}
+                value={formFields.password}
               />
 
               <Button
@@ -62,16 +94,14 @@ const Login = () => {
               </Button>
             </div>
 
-            <a
-              className="link cursor-pointer text-[15px] font-[600]"
-              onClick={forgotPassword}
-            >
-              {" "}
+            <a className="link cursor-pointer text-[15px] font-[600]" onClick={forgotPassword}>
               Forget Password?
             </a>
 
             <div className="flex items-center w-full mt-3 mb-3">
-              <Button className="btn-org w-full btn-lg">Login</Button>
+              <Button className="btn-org w-full btn-lg" type="submit" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Login'}
+              </Button>
             </div>
             <p className="text-center">
               Not Registered?{" "}

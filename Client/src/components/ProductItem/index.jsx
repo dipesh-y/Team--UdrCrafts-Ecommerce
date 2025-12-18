@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import { FaRegHeart } from "react-icons/fa";
 import { IoGitCompareOutline } from "react-icons/io5";
 import { MdZoomOutMap } from "react-icons/md";
-import { MyContext } from "../../App";
+import { MyContext } from "../../context/MyContext";
 
 const ProductItem = () => {
   const context = useContext(MyContext);

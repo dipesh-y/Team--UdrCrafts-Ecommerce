@@ -7,7 +7,7 @@ import { FaRegHeart } from "react-icons/fa";
 import { IoGitCompareOutline } from "react-icons/io5";
 import { MdZoomOutMap } from "react-icons/md";
 import { MdOutlineShoppingCart } from "react-icons/md";
-import { MyContext } from "../../App";
+import { MyContext } from "../../context/MyContext";
 
 const ProductItemListView = () => {
   const context = useContext(MyContext);

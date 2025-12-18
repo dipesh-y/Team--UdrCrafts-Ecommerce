@@ -1,4 +1,4 @@
-import React, { useState, createContext } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import Header from "./components/Header/Index";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -20,19 +20,21 @@ import Verify from "./Pages/Verify";
 import ForgotPassword from "./Pages/ForgotPassword";
 
 import toast, { Toaster } from "react-hot-toast";
+import { MyContext } from "./context/MyContext";
 import Checkout from "./Pages/Checkout";
 import MyAccount from "./Pages/MyAccount";
 import MyList from "./Pages/MyList";
 import Orders from "./Pages/Orders";
 
-export const MyContext = createContext();
+
+// app-level alert helper will be defined inside component
 
 function App() {
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
-  const [fullWidth, setFullWidth] = useState(true);
-  const [maxWidth, setMaxWidth] = useState("lg");
+  const [fullWidth, _setFullWidth] = useState(true);
+  const [maxWidth, _setMaxWidth] = useState("lg");
   const [isLogin, setIsLogin] = useState(true);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const [openCartPanel, setOpenCartPanel] = React.useState(false);
 
   const handleCloseProductDetailsModal = () => {
@@ -44,12 +46,8 @@ function App() {
   };
 
   const openAlertBox = (status, msg) => {
-    if (status === "success") {
-      toast.success(msg);
-    }
-    if (status === "error") {
-      toast.error(msg);
-    }
+    if (status === "success") toast.success(msg);
+    if (status === "error") toast.error(msg);
   };
 
   const values = {
@@ -59,7 +57,8 @@ function App() {
     openCartPanel,
     openAlertBox,
     isLogin,
-    setIsLogin,
+    login: isLogin,
+    setIsLogin 
   };
 
   return (
@@ -71,24 +70,16 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/productListing" element={<ProductListing />} />
-            <Route
-              path="/product/:id"
-              exact={true}
-              element={<ProductDetails />}
-            />
-            <Route path="/login" exact={true} element={<Login />} />
-            <Route path="/register" exact={true} element={<Register />} />
-            <Route path="/cart" exact={true} element={<CartPage />} />
-            <Route path="/verify" exact={true} element={<Verify />} />
-            <Route
-              path="/forgot-password"
-              exact={true}
-              element={<ForgotPassword />}
-            />
-            <Route path="/checkout" exact={true} element={<Checkout />} />
-            <Route path="/my-account" exact={true} element={<MyAccount />} />
-            <Route path="/my-list" exact={true} element={<MyList />} />
-            <Route path="/my-orders" exact={true} element={<Orders />} />
+            <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/verify" element={<Verify />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/my-account" element={<MyAccount />} />
+            <Route path="/my-list" element={<MyList />} />
+            <Route path="/my-orders" element={<Orders />} />
           </Routes>
 
           <Footer />
@@ -126,5 +117,6 @@ function App() {
     </>
   );
 }
+
 
 export default App;

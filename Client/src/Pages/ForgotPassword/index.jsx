@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import { MyContext } from "../../App";
+import { MyContext } from "../../context/MyContext";
 
 const ForgotPassword = () => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);

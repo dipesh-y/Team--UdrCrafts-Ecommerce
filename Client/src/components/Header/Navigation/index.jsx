@@ -58,7 +58,7 @@ const Navigation = () => {
                 >
                   <ul>
                     <li className="list-none w-full">
-                      <Link to="/" className="w-full">
+                      <div className="w-full">
                         <Button
                           className="!text-[rgba(0,0,0,0.8)] w-full 
                             !text-left !justify-start !rounded-none hover:!text-[#ff5252]"
@@ -112,11 +112,11 @@ const Navigation = () => {
                             </li>
                           </ul>
                         </div>
-                      </Link>
+                      </div>
                     </li>
 
                     <li className="list-none w-full">
-                      <Link to="/" className="w-full">
+                      <div className="w-full">
                         <Button
                           className="!text-[rgba(0,0,0,0.8)] w-full !text-left 
                             !justify-start !rounded-none hover:!text-[#ff5252]"
@@ -169,7 +169,7 @@ const Navigation = () => {
                             </li>
                           </ul>
                         </div>
-                      </Link>
+                      </div>
                     </li>
 
                     <li className="list-none w-full">
@@ -218,7 +218,7 @@ const Navigation = () => {
                 >
                   <ul>
                     <li className="list-none w-full">
-                      <Link to="/" className="w-full">
+                      <div className="w-full">
                         <Button
                           className="!text-[rgba(0,0,0,0.8)] w-full 
                           !text-left !justify-start !rounded-none hover:!text-[#ff5252]"
@@ -256,7 +256,7 @@ const Navigation = () => {
                             </li>
                           </ul>
                         </div>
-                      </Link>
+                      </div>
                     </li>
 
                     <li className="list-none w-full">

@@ -10,7 +10,7 @@ import { IoMdGitCompare } from "react-icons/io";
 import { FaRegHeart } from "react-icons/fa6";
 import Tooltip from "@mui/material/Tooltip";
 import Navigation from "./Navigation";
-import { MyContext } from "../../App";
+import { MyContext } from "../../context/MyContext";
 import Button from "@mui/material/Button";
 import { FaRegUser } from "react-icons/fa";
 

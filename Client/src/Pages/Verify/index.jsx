@@ -1,16 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import OtpBox from "../../components/OtpBox";
 import Button from "@mui/material/Button";
+import { useLocation, useNavigate } from "react-router-dom";
+import { postData } from "../../utils/api";
+import { MyContext } from "../../context/MyContext";
 
 const Verify = () => {
   const [otp, setOtp] = useState("");
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const context = useContext(MyContext);
+
+  useEffect(() => {
+    if (location?.state?.email) setEmail(location.state.email);
+  }, [location]);
+
   const handleOtpChange = (value) => {
     setOtp(value);
   };
 
-  const verifyOTP = (e) => {
+  const verifyOTP = async (e) => {
     e.preventDefault();
-    alert(otp);
+    if (!email) {
+      context.openAlertBox("error", "Missing email to verify.");
+      return;
+    }
+    if (!otp || otp.length < 4) {
+      context.openAlertBox("error", "Please enter the complete OTP.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await postData("/api/verifyEmail", { email, otp });
+      if (res && res.success) {
+        context.openAlertBox("success", res.message || "Email verified successfully");
+        navigate('/login');
+      } else {
+        context.openAlertBox("error", res.message || "Invalid OTP");
+      }
+    } catch (err) {
+      console.error(err);
+      context.openAlertBox("error", "Verification failed. Try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -21,22 +56,19 @@ const Verify = () => {
             <img src="/verify3.png" width="80" />
           </div>
 
-          <h3 className="text-center text-[18px] text-black mt-4 mb-1">
-            Verify OTP
-          </h3>
+          <h3 className="text-center text-[18px] text-black mt-4 mb-1">Verify OTP</h3>
 
           <p className="text-center mt-0 mb-5">
-            OTP send to{" "}
-            <span className="text-primary font-bold">rinkuv37@gmail.com</span>
+            OTP sent to {" "}
+            <span className="text-primary font-bold">{email || 'your email'}</span>
           </p>
 
           <form onSubmit={verifyOTP}>
             <OtpBox length={6} onChange={handleOtpChange} />
 
             <div className="flex items center justify-center mt-5 px-3">
-              <Button type="submit" className="w-full btn-org btn-lg">
-                {" "}
-                Verify OTP
+              <Button type="submit" className="w-full btn-org btn-lg" disabled={isLoading}>
+                {isLoading ? 'Verifying...' : 'Verify OTP'}
               </Button>
             </div>
           </form>

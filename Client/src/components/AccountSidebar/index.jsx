@@ -5,7 +5,7 @@ import { FaRegUser } from "react-icons/fa";
 import { IoMdHeartEmpty } from "react-icons/io";
 import { IoIosLogOut } from "react-icons/io";
 import { IoBagCheckOutline } from "react-icons/io5";
-import { NavLink } from "react-router";
+import { NavLink } from "react-router-dom";
 
 const AccountSidebar = () => {
   return (
@@ -36,31 +36,31 @@ const AccountSidebar = () => {
 
       <ul className="list-none pb-5 bg-[#f1f1f1] myAccountTabs">
         <li className="w-full">
-          <NavLink to="/my-account" exact={true} activeClassName="isActive">
-            <Button className="w-full !text-left !py-2 !px-3 !justify-start !capitalize !text=[rgba(0,0,0,0.8)] !rounded-noneflex item-center gap-2">
+          <NavLink to="/my-account" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
+            <Button className="w-full !text-left !py-2 !px-3 !justify-start !capitalize !text-[rgba(0,0,0,0.8)] !rounded-none flex items-center gap-2">
               <FaRegUser className="text-[15px]" />
               My Profile
             </Button>
           </NavLink>
         </li>
         <li className="w-full">
-          <NavLink to="/my-list" exact={true} activeClassName="isActive">
-            <Button className="w-full !text-left !py-2  !px-3 !justify-start !capitalize !text=[rgba(0,0,0,0.8)] !rounded-noneflex item-center gap-2">
+          <NavLink to="/my-list" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
+            <Button className="w-full !text-left !py-2  !px-3 !justify-start !capitalize !text-[rgba(0,0,0,0.8)] !rounded-none flex items-center gap-2">
               <IoMdHeartEmpty className="text-[17px]" /> My List
             </Button>
           </NavLink>
         </li>
         <li className="w-full">
-          <NavLink to="/my-orders" exact={true} activeClassName="isActive">
-            <Button className="w-full !text-left !py-2  !px-3 !justify-start !capitalize !text=[rgba(0,0,0,0.8)] !rounded-noneflex item-center gap-2">
+          <NavLink to="/my-orders" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
+            <Button className="w-full !text-left !py-2  !px-3 !justify-start !capitalize !text-[rgba(0,0,0,0.8)] !rounded-none flex items-center gap-2">
               <IoBagCheckOutline className="text-[17px]" />
               My Orders
             </Button>
           </NavLink>
         </li>
         <li className="w-full">
-          <NavLink to="/logout" exact={true} activeClassName="isActive">
-            <Button className="w-full !text-left !py-2  !px-3 !justify-start !capitalize !text=[rgba(0,0,0,0.8)] !rounded-noneflex item-center gap-2">
+          <NavLink to="/logout" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
+            <Button className="w-full !text-left !py-2  !px-3 !justify-start !capitalize !text-[rgba(0,0,0,0.8)] !rounded-none flex items-center gap-2">
               <IoIosLogOut className="text-[17px]" />
               Logout
             </Button>
