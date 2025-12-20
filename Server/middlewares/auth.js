@@ -7,8 +7,13 @@ const auth = async(req, res, next) => {
         console.log("Headers:", req.headers);
         
         // Get token from cookies or Authorization header
-        const token = req.cookies?.accessToken || 
+        var token = req.cookies?.accessToken || 
                      (req.headers?.authorization && req.headers.authorization.split(" ")[1]);
+        if(!token){
+            token = request.query.token ;
+        }
+        
+                    
 
         console.log("Token found:", !!token);
 

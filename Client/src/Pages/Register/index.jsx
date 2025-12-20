@@ -8,6 +8,7 @@ import { FcGoogle } from "react-icons/fc";
 import { postData } from "../../utils/api";
 import { MyContext } from "../../context/MyContext"; 
 const Register = () => {
+ 
   const [isPasswordShow, setIsPasswordShow] = useState(false);
   const [formFields, setFormFields] = useState({
     name: "",
@@ -16,7 +17,8 @@ const Register = () => {
   });
 
   const context = useContext(MyContext);
-  const navigate = useNavigate();
+  const history = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
   const onChangeInput = (e) => {
     const { name, value } = e.target;
@@ -26,25 +28,30 @@ const isFormValid = Object.values(formFields).every((el) => String(el).trim() !=
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if(formFields.name ===""){
       context.openAlertBox("error","Please enter full name");
       return false;
     }
+
     if(formFields.email ===""){
       context.openAlertBox("error","Please enter email id");
       return false;
 
     }
+
     if(formFields.password === ""){
       context.openAlertBox("error","Please enter password");
       return false;
     }
+
     setIsLoading(true);
+    
     try {
       const response = await postData("/api/register", formFields);
       console.log("register response", response);
       context.openAlertBox("success", "Registration successful. Please verify your email.");
-      navigate('/verify', { state: { email: formFields.email } });
+      history('/verify', { state: { email: formFields.email } });
     } catch (err) {
       console.error(err);
       context.openAlertBox("error", "Registration failed. Please try again.");

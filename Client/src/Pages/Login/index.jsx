@@ -6,13 +6,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { MyContext } from "../../context/MyContext";
 import { postData } from "../../utils/api";
+import CircularProgress from '@mui/material/CircularProgress';
+
+
+
 
 const Login = () => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
   const [formFields, setFormFields] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
+
   const context = useContext(MyContext);
-  const navigate = useNavigate();
+  const history  = useNavigate();
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -32,11 +37,19 @@ const Login = () => {
     }
     setIsLoading(true);
     try {
-      const res = await postData('/api/login', formFields);
+      const res = await postData('api/user/login', formFields ,{withCredentials: true}).then((res) => console.log(res));
       if (res && res.success) {
         context.openAlertBox('success', res.message || 'Login successful');
         if (typeof context.setIsLogin === 'function') context.setIsLogin(true);
-        navigate('/');
+
+        localStorage.setItem('accessToken', res?.data ?.accessToken);
+        localStorage.setItem('refreshToken', res?.data ?.refreshToken);
+        
+        context .setIsLogin(true);
+
+
+
+        history('/');
       } else {
         context.openAlertBox('error', res.message || 'Login failed');
       }

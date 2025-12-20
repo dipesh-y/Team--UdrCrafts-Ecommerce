@@ -34,6 +34,7 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
+ 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -43,6 +44,22 @@ const Header = () => {
   };
 
   const context = useContext(MyContext);
+
+  const logout = () => {
+    setAnchorEl(null);$
+
+    fetchDataFromApi(`/api/user/logout?token=${localStorage.getItem('Token')}` , {withCredentials: true}).then((res) => {
+      console.log(res);
+      context.setIslogin(false);
+      if(res?.error === false){
+        context.setIslogin(false);
+
+        localStorage.removeItem('accessToken', res?.data ?.accessToken);
+        localStorage.removeItem('refreshToken', res?.data ?.refreshToken);
+      }
+
+    })
+  }
 
   return (
     <header className="bg-white">
@@ -124,10 +141,13 @@ const Header = () => {
 
                     <div className="info flex flex-col">
                       <h4 className="leading-3 text-[14px] text-[rgba(0,0,0,0.6)] font-[500] mb-0 capitalize text-left">
-                        Rinku Verma
+                        {context?.userData?.name}
                       </h4>
                       <span className="text-[13px] text-[rgba(0,0,0,0.6)] font-[400] capitalize text-left">
-                        rinkuv.planetc@gmail.com
+                        {
+                          console.log(context?.userData)
+                        }
+                        {context?.userData?.email}
                       </span>
                     </div>
                   </Button>
@@ -193,7 +213,7 @@ const Header = () => {
                     </Link>
 
                     <MenuItem
-                      onClick={handleClose}
+                      onClick={logout}
                       className="flex gap-2 !py-2"
                     >
                       <IoIosLogOut />{" "}

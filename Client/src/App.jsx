@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import Header from "./components/Header/Index";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -25,6 +25,7 @@ import Checkout from "./Pages/Checkout";
 import MyAccount from "./Pages/MyAccount";
 import MyList from "./Pages/MyList";
 import Orders from "./Pages/Orders";
+import { fetchDataFromApi } from "./utils/api";
 
 
 // app-level alert helper will be defined inside component
@@ -36,6 +37,7 @@ function App() {
   const [isLogin, setIsLogin] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL;
   const [openCartPanel, setOpenCartPanel] = React.useState(false);
+  const [userData ,setUserData] = useState(null)
 
   const handleCloseProductDetailsModal = () => {
     setOpenProductDetailsModal(false);
@@ -45,6 +47,20 @@ function App() {
     setOpenCartPanel(newOpen);
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+     if(token!==null && token!=="" && token!==undefined){
+      setIsLogin(true);
+
+      fetchDataFromApi(`/api/user/user-detail?${token}`).then((res) => {
+        console.log(res)
+        setUserData(res.data);
+      })
+
+      }else{
+      setIsLogin(false);
+      }
+  },[isLogin]);
   const openAlertBox = (status, msg) => {
     if (status === "success") toast.success(msg);
     if (status === "error") toast.error(msg);
@@ -58,7 +74,8 @@ function App() {
     openAlertBox,
     isLogin,
     login: isLogin,
-    setIsLogin 
+    setIsLogin ,
+    setUserData
   };
 
   return (
