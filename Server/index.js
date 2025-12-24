@@ -6,12 +6,13 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import connectDB from './config/connectDb.js';
 import userRouter from './route/useroute.js'
+import debugRouter from './route/debugroute.js';
 import bcrypt from "bcrypt"
 import nodemailer from "nodemailer";
 import categoryRouter from './route/categoryroute.js';
 import productRouter from './route/productroute.js';
 import cartRouter from './route/cartroute.js';
-import myListRouter from './route/myList.route.js'
+import myListRouter from './route/mylistroute.js'
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.get("/", (req, res) => {
 });
 
 app.use('/api/user',userRouter)
+app.use('/api/debug', debugRouter);
 app.use('/api/category' , categoryRouter)
 app.use('/api/product' , productRouter)
 app.use('/api/cart',cartRouter);

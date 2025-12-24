@@ -10,6 +10,7 @@ import { IoMdGitCompare } from "react-icons/io";
 import { FaRegHeart } from "react-icons/fa6";
 import Tooltip from "@mui/material/Tooltip";
 import Navigation from "./Navigation";
+import { fetchDataFromApi } from "../../utils/api";
 import { MyContext } from "../../context/MyContext";
 import Button from "@mui/material/Button";
 import { FaRegUser } from "react-icons/fa";
@@ -46,19 +47,19 @@ const Header = () => {
   const context = useContext(MyContext);
 
   const logout = () => {
-    setAnchorEl(null);$
+    setAnchorEl(null);
 
-    fetchDataFromApi(`/api/user/logout?token=${localStorage.getItem('Token')}` , {withCredentials: true}).then((res) => {
+    fetchDataFromApi(`/api/user/logout`).then((res) => {
       console.log(res);
-      context.setIslogin(false);
-      if(res?.error === false){
-        context.setIslogin(false);
-
-        localStorage.removeItem('accessToken', res?.data ?.accessToken);
-        localStorage.removeItem('refreshToken', res?.data ?.refreshToken);
-      }
-
-    })
+      if (typeof context.setIsLogin === "function") context.setIsLogin(false);
+      if (typeof context.setUserData === "function") context.setUserData(null);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }).catch((err) => {
+      console.error('Logout failed', err);
+      if (typeof context.setIsLogin === "function") context.setIsLogin(false);
+      if (typeof context.setUserData === "function") context.setUserData(null);
+    });
   }
 
   return (

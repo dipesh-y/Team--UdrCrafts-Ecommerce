@@ -1,79 +1,111 @@
-import jwt from 'jsonwebtoken';
+ import jwt from 'jsonwebtoken';
+import generatedAccessToken from '../utils/generatedAccessToken.js';
+import generatedRefreshToken from '../utils/generatedRefreshToken.js';
+import UserModel from '../models/usermodel.js';
 
-const auth = async(req, res, next) => {
+const auth = async (req, res, next) => {
     try {
-        console.log("Auth middleware called");
-        console.log("Cookies:", req.cookies);
-        console.log("Headers:", req.headers);
-        
-        // Get token from cookies or Authorization header
-        var token = req.cookies?.accessToken || 
-                     (req.headers?.authorization && req.headers.authorization.split(" ")[1]);
-        if(!token){
-            token = request.query.token ;
+        let token =
+            req.cookies.accessToken ||
+            req.cookies.adminAccessToken ||
+            req?.headers?.authorization?.split(" ")[1] ||
+            req.headers['x-access-token'];
+
+        const isAdmin = !!req.cookies.adminAccessToken;
+
+        if (!token && req.query?.token) {
+            token = req.query.token;
         }
-        
-                    
 
-        console.log("Token found:", !!token);
+        if (!token && req.body?.token) {
+            token = req.body.token;
+        }
 
-        if(!token) {
+        if (!token) {
             return res.status(401).json({
-                message: "Authentication token required",
-                error: true,
-                success: false
-            })
+                message: "Provide token"
+            });
         }
 
-        // Verify token
-        const decode = jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN);
-        console.log("Decoded token:", decode);
-
-        if(!decode) {
+        const decode = await jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN);
+        if (!decode) {
             return res.status(401).json({
-                message: "Invalid token",
+                message: "Unauthorized access",
                 error: true,
-                success: false
-            })
+                success : false
+            });
         }
 
-        // Try different possible user ID fields
-        req.userId = decode.id || decode.userId || decode._id || decode.user;
-        
-        console.log("User ID set to:", req.userId);
-        
-        if(!req.userId) {
-            return res.status(401).json({
-                message: "User ID not found in token",
-                error: true,
-                success: false
-            })
-        }
-
+        req.userId = decode.id;
+        req.isAdmin = isAdmin;
         next();
 
+
     } catch (error) {
-        console.error("Auth error:", error.message);
-        if(error.name === 'JsonWebTokenError') {
+        if (error.name === 'TokenExpiredError') {
+            // Try to refresh the token
+            try {
+                const refreshToken = req.cookies.refreshToken || req.cookies.adminRefreshToken;
+                if (!refreshToken) {
+                    return res.status(401).json({
+                        message: "Refresh token not provided",
+                        error: true,
+                        success: false
+                    });
+                }
+
+                const refreshDecode = await jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN);
+                if (!refreshDecode) {
+                    return res.status(401).json({
+                        message: "Invalid refresh token",
+                        error: true,
+                        success: false
+                    });
+                }
+
+                const userId = refreshDecode.id;
+                const user = await UserModel.findById(userId);
+                if (!user || user.refresh_token !== refreshToken) {
+                    return res.status(401).json({
+                        message: "Refresh token mismatch",
+                        error: true,
+                        success: false
+                    });
+                }
+
+                // Generate new access token
+                const newAccessToken = await generatedAccessToken(userId);
+
+                const cookiesOption = {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "None"
+                };
+
+                if (req.cookies.adminRefreshToken) {
+                    res.cookie('adminAccessToken', newAccessToken, cookiesOption);
+                } else {
+                    res.cookie('accessToken', newAccessToken, cookiesOption);
+                }
+
+                req.userId = userId;
+                req.isAdmin = !!req.cookies.adminRefreshToken;
+                next();
+            } catch (refreshError) {
+                return res.status(401).json({
+                    message: "Token refresh failed",
+                    error: true,
+                    success: false
+                });
+            }
+        } else {
             return res.status(401).json({
                 message: "Invalid token",
-                error: true,
-                success: false
+                error : true,
+                success : false
             })
         }
-        if(error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                message: "Token expired",
-                error: true,
-                success: false
-            })
-        }
-        return res.status(500).json({
-            message: "Authentication failed",
-            error: true,
-            success: false
-        })
     }
 }
 
-export default auth;
+export default auth ;

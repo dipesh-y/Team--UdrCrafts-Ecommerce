@@ -26,7 +26,7 @@ const Login = () => {
 
   const forgotPassword = () => {
     context.openAlertBox("success", "OTP sent (use Forgot Password flow)");
-    navigate("/forgot-password");
+    history("/forgot-password");
   };
 
   const handleSubmit = async (e) => {
@@ -37,17 +37,16 @@ const Login = () => {
     }
     setIsLoading(true);
     try {
-      const res = await postData('api/user/login', formFields ,{withCredentials: true}).then((res) => console.log(res));
+      const res = await postData('/api/user/login', formFields, { withCredentials: true });
+      console.log('login response', res);
       if (res && res.success) {
         context.openAlertBox('success', res.message || 'Login successful');
         if (typeof context.setIsLogin === 'function') context.setIsLogin(true);
 
-        localStorage.setItem('accessToken', res?.data ?.accessToken);
-        localStorage.setItem('refreshToken', res?.data ?.refreshToken);
-        
-        context .setIsLogin(true);
+        localStorage.setItem('accessToken', res?.data?.accessToken);
+        localStorage.setItem('refreshToken', res?.data?.refreshToken);
 
-
+        if (typeof context.setUserData === 'function') context.setUserData(res?.data?.user || res?.data);
 
         history('/');
       } else {

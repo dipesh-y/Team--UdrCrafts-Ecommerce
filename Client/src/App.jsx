@@ -34,7 +34,7 @@ function App() {
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
   const [fullWidth, _setFullWidth] = useState(true);
   const [maxWidth, _setMaxWidth] = useState("lg");
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
   const [openCartPanel, setOpenCartPanel] = React.useState(false);
   const [userData ,setUserData] = useState(null)
@@ -49,18 +49,24 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-     if(token!==null && token!=="" && token!==undefined){
+    if (token) {
       setIsLogin(true);
-
-      fetchDataFromApi(`/api/user/user-detail?${token}`).then((res) => {
-        console.log(res)
-        setUserData(res.data);
-      })
-
-      }else{
+      fetchDataFromApi(`/api/user/user-details`)
+        .then((res) => {
+          if (res && res.data) {
+            setUserData(res.data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed fetching user details', err);
+          setIsLogin(false);
+          setUserData(null);
+        });
+    } else {
       setIsLogin(false);
-      }
-  },[isLogin]);
+      setUserData(null);
+    }
+  }, []);
   const openAlertBox = (status, msg) => {
     if (status === "success") toast.success(msg);
     if (status === "error") toast.error(msg);
@@ -75,6 +81,7 @@ function App() {
     isLogin,
     login: isLogin,
     setIsLogin ,
+    userData,
     setUserData
   };
 
