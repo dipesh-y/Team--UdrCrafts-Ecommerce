@@ -126,103 +126,110 @@ export async function verifyEmailController(request, response) {
 }
 
 // login controller
-export async function loginUserController(req,res){
-    try{
-        const {email, password} = req.body ;
+export async function loginUserController(req, res) {
+    try {
+        const { email, password } = req.body;
 
-        const user = await UserModel.findOne({email:email})
-    
-        if(!user){
+        const user = await UserModel.findOne({ email: email })
+
+        if (!user) {
             return res.status(400).json({
-                message:"User not registered",
-                error:true,
-                success:false
+                message: "User not registered",
+                error: true,
+                success: false
             })
         }
-    
-        if(user.verify_email !== true){
+
+        if (user.verify_email !== true) {
             return res.status(400).json({
-                message:"your email is not verified",
-                error:true,
-                success:false
+                message: "your email is not verified",
+                error: true,
+                success: false
             })
         }
-    
+
         const checkPassword = await bcryptjs.compare(password, user.password);
-    
-        if(!checkPassword){
+
+        if (!checkPassword) {
             return res.status(400).json({
-                message:"Check your password",
-                error:true,
-                success:false
+                message: "Check your password",
+                error: true,
+                success: false
             })
         }
-    
-        
+
+
         const accessToken = await generatedAccessToken(user._id);
         const refreshToken = await generatedRefreshToken(user._id);
-    
-        const updateUser = await UserModel.findByIdAndUpdate(user?._id,{
-            last_login_date : new Date()
+
+        const updateUser = await UserModel.findByIdAndUpdate(user?._id, {
+            last_login_date: new Date()
         })
-    
-    
+
+
         const cookiesOption = {
-            httpOnly : true,
-            secure : true,
-            sameSite : "None"
+            httpOnly: true,
+            secure: true,
+            sameSite: "None"
         }
-        res.cookie('accessToken', accessToken,cookiesOption);
-        res.cookie('refreshToken', refreshToken,cookiesOption);
-    
-    
+        res.cookie('accessToken', accessToken, cookiesOption);
+        res.cookie('refreshToken', refreshToken, cookiesOption);
+
+
         return res.json({
-            message : "Login successfully",
-            error : false,
-            success : true,
-            data :{
+            message: "Login successfully",
+            error: false,
+            success: true,
+            data: {
                 accessToken,
-                refreshToken
+                refreshToken,
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    avatar: user.avatar || ""
+                }
             }
-        })
+        });
+
     } catch (error) {
         return res.status(500).json({
-            message : error.message || error,
-            error : true,
-            success : false 
+            message: error.message || error,
+            error: true,
+            success: false
         })
     }
 }
 
 
 // logout controller 
-export async function logoutController(req, res){
+export async function logoutController(req, res) {
     try {
         const userid = req.userId;  //middleware
 
         const cookiesOption = {
-            httpOnly : true,
-            secure : true,
-            sameSite : "None"
+            httpOnly: true,
+            secure: true,
+            sameSite: "None"
         }
 
         res.clearCookie('accessToken', cookiesOption);
         res.clearCookie('refreshToken', cookiesOption);
 
-        const removeRefreshToken = await UserModel.findByIdAndUpdate(userid,{
-            refresh_token : ""
+        const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
+            refresh_token: ""
         })
 
         return res.json({
-            message : "LoggedOut successfully",
-            error : false,
-            success : true
+            message: "LoggedOut successfully",
+            error: false,
+            success: true
         })
     } catch (error) {
         return res.status(500).json({
-            message : error.message || error,
-            error : true,
-            success : false
+            message: error.message || error,
+            error: true,
+            success: false
         })
     }
 }
@@ -277,9 +284,9 @@ export async function userAvatarController(request, response) {
             overwrite: false
         };
 
-        
+
         for (let i = 0; i < image?.length; i++) {
-            
+
             // const img = await cloudinary.uploader.upload(
             //     image[i].path,
             //     options,
@@ -291,12 +298,12 @@ export async function userAvatarController(request, response) {
             //     }
             // );
 
-             const result = await cloudinary.uploader.upload(image[i].path, options);
+            const result = await cloudinary.uploader.upload(image[i].path, options);
             //  console.log("RESULT:", result);
-             imagesArr.push(result.secure_url);
+            imagesArr.push(result.secure_url);
 
-             // delete file from uploads folder
-             fs.unlinkSync(image[i].path);
+            // delete file from uploads folder
+            fs.unlinkSync(image[i].path);
 
         }
 
@@ -309,7 +316,7 @@ export async function userAvatarController(request, response) {
         });
 
     } catch (error) {
-        console.error("UPLOAD ERROR:", error); 
+        console.error("UPLOAD ERROR:", error);
         return response.status(500).json({
             message: error.message || error,
             error: true,
@@ -322,7 +329,7 @@ export async function userAvatarController(request, response) {
 // '/api/user?removeImg=?imh1.jpg' or remove image
 
 export async function removeImageFromCloudinary(request, response) {
-    try{
+    try {
         const userId = request.userId;
         const user = await UserModel.findOne({ _id: userId });
         if (!user) {
@@ -333,10 +340,10 @@ export async function removeImageFromCloudinary(request, response) {
             })
         }
 
-         const imgUrl = request.query.img;
+        const imgUrl = request.query.img;
 
-         const urlArr = imgUrl.split("/");
-         const image = urlArr[urlArr.length - 1];
+        const urlArr = imgUrl.split("/");
+        const image = urlArr[urlArr.length - 1];
 
         const imageName = image.split(".")[0];
 
@@ -384,7 +391,7 @@ export async function removeImageFromCloudinary(request, response) {
             success: false
         })
     }
-    
+
 }
 
 

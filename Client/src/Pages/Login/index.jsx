@@ -16,7 +16,8 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const context = useContext(MyContext);
+  // Destructure context values
+  const { setUserData, openAlertBox, setIsLogin } = useContext(MyContext);
   const navigate = useNavigate();
 
   const onChange = (e) => {
@@ -25,7 +26,7 @@ const Login = () => {
   };
 
   const forgotPassword = () => {
-    context.openAlertBox("success", "Redirecting to Forgot Password");
+    openAlertBox("success", "Redirecting to Forgot Password");
     navigate("/forgot-password");
   };
 
@@ -33,7 +34,7 @@ const Login = () => {
     e.preventDefault();
 
     if (!formFields.email.trim() || !formFields.password.trim()) {
-      context.openAlertBox("error", "Please enter email and password");
+      openAlertBox("error", "Please enter email and password");
       return;
     }
 
@@ -45,24 +46,27 @@ const Login = () => {
       });
 
       if (res?.success) {
-        context.openAlertBox("success", res.message || "Login successful");
+        openAlertBox("success", res.message || "Login successful");
 
-        context.setIsLogin?.(true);
+        setIsLogin(true);
 
         if (res?.data?.accessToken) {
           localStorage.setItem("accessToken", res.data.accessToken);
           localStorage.setItem("refreshToken", res.data.refreshToken);
         }
 
-        context.setUserData?.(res?.data?.user || res?.data);
+        setUserData({
+          name: res?.data?.user?.name,
+          email: res?.data?.user?.email,
+        });
 
         navigate("/");
       } else {
-        context.openAlertBox("error", res?.message || "Login failed");
+        openAlertBox("error", res?.message || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
-      context.openAlertBox("error", "Something went wrong. Try again.");
+      openAlertBox("error", "Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
     }

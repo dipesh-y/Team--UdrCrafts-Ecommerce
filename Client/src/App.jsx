@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -27,12 +27,17 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 
 import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 import { MyContext } from "./context/MyContext";
+
+
 
 function App() {
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
   const [openCartPanel, setOpenCartPanel] = useState(false);
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [userData, setUserData] = useState(null);
+
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -49,15 +54,41 @@ function App() {
     if (status === "error") toast.error(msg);
   };
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/user/user-details`,
+          { withCredentials: true }
+        );
+
+
+        if (res.data.success) {
+          setUserData(res.data.data);
+          setIsLogin(true);
+        }
+      } catch (err) {
+        setUserData(null);
+        setIsLogin(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+
+
   const contextValues = {
     API_URL,
+    userData,
+    setUserData,
     setOpenProductDetailsModal,
     openCartPanel,
     setOpenCartPanel,
     toggleCartPanel,
     openAlertBox,
     isLogin,
-    setIsLogin,
+    setIsLogin
   };
 
   return (

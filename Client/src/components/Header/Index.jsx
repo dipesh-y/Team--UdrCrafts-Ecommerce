@@ -35,6 +35,7 @@ const Header = () => {
 
   const context = useContext(MyContext);
   const navigate = useNavigate();
+  const { userData } = useContext(MyContext);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -111,10 +112,10 @@ const Header = () => {
 
                     <div className="text-left">
                       <h4 className="text-[14px] font-[500] leading-4">
-                        User
+                        {userData?.name || "User"}
                       </h4>
                       <span className="text-[13px] opacity-70">
-                        user@email.com
+                        {userData?.email || ""}
                       </span>
                     </div>
                   </Button>
