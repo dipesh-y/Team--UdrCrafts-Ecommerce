@@ -33,7 +33,7 @@ const Verify = () => {
     }
     setIsLoading(true);
     try {
-      const res = await postData("/api/verifyEmail", { email, otp });
+      const res = await postData("/api/user/verifyEmail", { email, otp })
       if (res && res.success) {
         context.openAlertBox("success", res.message || "Email verified successfully");
         navigate('/login');

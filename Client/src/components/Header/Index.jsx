@@ -1,22 +1,21 @@
 import React, { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.jpg";
 import Search from "../Search";
+import Navigation from "./Navigation";
+import { MyContext } from "../../context/MyContext";
+
 import Badge from "@mui/material/Badge";
 import { styled } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { IoMdGitCompare } from "react-icons/io";
-import { FaRegHeart } from "react-icons/fa6";
 import Tooltip from "@mui/material/Tooltip";
-import Navigation from "./Navigation";
-import { MyContext } from "../../context/MyContext";
 import Button from "@mui/material/Button";
-import { FaRegUser } from "react-icons/fa";
-
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 
+import { MdOutlineShoppingCart } from "react-icons/md";
+import { IoMdGitCompare } from "react-icons/io";
+import { FaRegHeart, FaRegUser } from "react-icons/fa";
 import { IoBagCheckOutline } from "react-icons/io5";
 import { IoMdHeartEmpty } from "react-icons/io";
 import { IoIosLogOut } from "react-icons/io";
@@ -34,210 +33,151 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event) => {
+  const context = useContext(MyContext);
+  const navigate = useNavigate();
+
+  const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  const context = useContext(MyContext);
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    context.setIsLogin(false);
+    context.openAlertBox("success", "Logged out successfully");
+
+    handleMenuClose();
+    navigate("/login");
+  };
 
   return (
     <header className="bg-white">
-      {/* top head */}
-      <div className="top-strip border-t-[1px] border-b-[1px] border-gray-250">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="col1 w-[50%]">
-              <p className="text-[13px] font-[500]">
-                Get up to 50% off new season styles, limited time only
-              </p>
-            </div>
+      {/* Top strip */}
+      <div className="border-y border-gray-200">
+        <div className="container py-3 flex justify-between">
+          <p className="text-[13px] font-[500]">
+            Get up to 50% off new season styles, limited time only
+          </p>
 
-            <div className="col2 flex items-center justify-end">
-              <ul className="flex items-center gap-3">
-                <li className="list-none">
-                  <Link
-                    to="help-center"
-                    className="text-[13px] link font-[500] transition"
-                  >
-                    Help Center
-                  </Link>
-                </li>
-                <li className="list-none">
-                  <Link
-                    to="/order-tracking"
-                    className="text-[13px] link font-[500] transition"
-                  >
-                    Order Tracking
-                  </Link>
-                </li>
-              </ul>
-            </div>
+          <div className="flex gap-4">
+            <Link to="/help-center" className="text-[13px] font-[500] link">
+              Help Center
+            </Link>
+            <Link to="/order-tracking" className="text-[13px] font-[500] link">
+              Order Tracking
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* sec head */}
-      <div className="header py-4 border-b-[1px] border-gray-250">
+      {/* Main header */}
+      <div className="border-b border-gray-200 py-4">
         <div className="container flex items-center justify-between">
-          <div className="col1 w-[25%]">
-            <Link to="/">
-              <img src={logo} alt="Logo" />
-            </Link>
-          </div>
+          <Link to="/" className="w-[25%]">
+            <img src={logo} alt="Logo" />
+          </Link>
 
-          <div className="col2 w-[40%]">
+          <div className="w-[40%]">
             <Search />
           </div>
 
-          <div className="col3 w-[35%] flex items-center pl-7">
-            <ul className="flex items-center justify-end gap-3 w-full">
-              {context.login === false ? (
-                <li className="list-none">
-                  <Link
-                    to="/login"
-                    className="link transition text-[15px] font-[500]"
-                  >
+          <div className="w-[35%] flex justify-end">
+            <ul className="flex items-center gap-3">
+              {!context.isLogin ? (
+                <li className="text-[15px] font-[500]">
+                  <Link to="/login" className="link">
                     Login
                   </Link>{" "}
-                  | &nbsp;
-                  <Link
-                    to="/register"
-                    className="link transition text-[15px] font-[500]"
-                  >
+                  |{" "}
+                  <Link to="/register" className="link">
                     Register
                   </Link>
                 </li>
               ) : (
                 <>
-                  {/* Account Button */}
+                  {/* Account button */}
                   <Button
-                    className="!text-[#000] myAccountWrap flex items-center gap-3 cursor-pointer"
-                    onClick={handleClick}
+                    onClick={handleMenuOpen}
+                    className="!text-black flex items-center gap-2"
                   >
-                    <div className="!w-[40px] !h-[40px] !min-w-[40px] rounded-full border border-[#f1f1f1] flex items-center justify-center">
-                      <FaRegUser className="text-[16px] text-[rgba(0,0,0,0.7)]" />
+                    <div className="w-[40px] h-[40px] rounded-full border flex items-center justify-center">
+                      <FaRegUser />
                     </div>
 
-                    <div className="info flex flex-col">
-                      <h4 className="leading-3 text-[14px] text-[rgba(0,0,0,0.6)] font-[500] mb-0 capitalize text-left">
-                        Rinku Verma
+                    <div className="text-left">
+                      <h4 className="text-[14px] font-[500] leading-4">
+                        User
                       </h4>
-                      <span className="text-[13px] text-[rgba(0,0,0,0.6)] font-[400] capitalize text-left">
-                        rinkuv.planetc@gmail.com
+                      <span className="text-[13px] opacity-70">
+                        user@email.com
                       </span>
                     </div>
                   </Button>
 
-                  {/* Account Menu */}
+                  {/* Account menu */}
                   <Menu
                     anchorEl={anchorEl}
-                    id="account-menu"
                     open={open}
-                    onClose={handleClose}
-                    onClick={handleClose}
-                    slotProps={{
-                      paper: {
-                        elevation: 0,
-                        sx: {
-                          overflow: "visible",
-                          filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                          mt: 1.5,
-                          "&::before": {
-                            content: '""',
-                            display: "block",
-                            position: "absolute",
-                            top: 0,
-                            right: 14,
-                            width: 10,
-                            height: 10,
-                            bgcolor: "background.paper",
-                            transform: "translateY(-50%) rotate(45deg)",
-                            zIndex: 0,
-                          },
-                        },
-                      },
-                    }}
-                    transformOrigin={{ horizontal: "right", vertical: "top" }}
+                    onClose={handleMenuClose}
                     anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                    transformOrigin={{ horizontal: "right", vertical: "top" }}
                   >
-                    <Link to="/my-account" className="w-full block">
-                      <MenuItem
-                        onClick={handleClose}
-                        className="flex gap-2 !py-2"
-                      >
-                        <FaRegUser />{" "}
-                        <span className="text-[18px]"> My account</span>
-                      </MenuItem>{" "}
-                    </Link>
-                    <Link to="/my-orders" className="w-full block">
-                      <MenuItem
-                        onClick={handleClose}
-                        className="flex gap-2 !py-2"
-                      >
-                        <IoBagCheckOutline />{" "}
-                        <span className="text-[18px]"> Orders</span>
-                      </MenuItem>
-                    </Link>
-                    <Link to="/my-list" className="w-full block">
-                      <MenuItem
-                        onClick={handleClose}
-                        className="flex gap-2 !py-2"
-                      >
-                        <IoMdHeartEmpty />{" "}
-                        <span className="text-[18px]"> My List</span>
-                      </MenuItem>
-                    </Link>
+                    <MenuItem onClick={handleMenuClose}>
+                      <Link to="/my-account" className="flex gap-2">
+                        <FaRegUser /> My Account
+                      </Link>
+                    </MenuItem>
 
-                    <MenuItem
-                      onClick={handleClose}
-                      className="flex gap-2 !py-2"
-                    >
-                      <IoIosLogOut />{" "}
-                      <span className="text-[18px]"> Logout</span>
+                    <MenuItem onClick={handleMenuClose}>
+                      <Link to="/my-orders" className="flex gap-2">
+                        <IoBagCheckOutline /> Orders
+                      </Link>
+                    </MenuItem>
+
+                    <MenuItem onClick={handleMenuClose}>
+                      <Link to="/my-list" className="flex gap-2">
+                        <IoMdHeartEmpty /> My List
+                      </Link>
+                    </MenuItem>
+
+                    <MenuItem onClick={handleLogout} className="flex gap-2">
+                      <IoIosLogOut /> Logout
                     </MenuItem>
                   </Menu>
                 </>
               )}
 
-              {/* compare */}
-              <li>
-                <Tooltip title="Compare" placement="bottom">
-                  <IconButton aria-label="compare">
-                    <StyledBadge badgeContent={4} color="secondary">
-                      <IoMdGitCompare />
-                    </StyledBadge>
-                  </IconButton>
-                </Tooltip>
-              </li>
+              {/* Compare */}
+              <Tooltip title="Compare">
+                <IconButton>
+                  <StyledBadge badgeContent={0} color="secondary">
+                    <IoMdGitCompare />
+                  </StyledBadge>
+                </IconButton>
+              </Tooltip>
 
-              {/* wishlist */}
-              <li>
-                <Tooltip title="Wishlist" placement="bottom">
-                  <IconButton aria-label="wishlist">
-                    <StyledBadge badgeContent={4} color="secondary">
-                      <FaRegHeart />
-                    </StyledBadge>
-                  </IconButton>
-                </Tooltip>
-              </li>
+              {/* Wishlist */}
+              <Tooltip title="Wishlist">
+                <IconButton>
+                  <StyledBadge badgeContent={0} color="secondary">
+                    <FaRegHeart />
+                  </StyledBadge>
+                </IconButton>
+              </Tooltip>
 
               {/* Cart */}
-              <li>
-                <Tooltip title="Cart" placement="bottom">
-                  <IconButton
-                    aria-label="cart"
-                    onClick={() => context.setOpenCartPanel(true)}
-                  >
-                    <StyledBadge badgeContent={4} color="secondary">
-                      <MdOutlineShoppingCart />
-                    </StyledBadge>
-                  </IconButton>
-                </Tooltip>
-              </li>
+              <Tooltip title="Cart">
+                <IconButton onClick={() => context.setOpenCartPanel(true)}>
+                  <StyledBadge badgeContent={0} color="secondary">
+                    <MdOutlineShoppingCart />
+                  </StyledBadge>
+                </IconButton>
+              </Tooltip>
             </ul>
           </div>
         </div>

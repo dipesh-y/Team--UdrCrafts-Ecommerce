@@ -1,41 +1,40 @@
 import React, { useState } from "react";
 import "./App.css";
-import Header from "./components/Header/Index";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Header from "./components/Header/Index";
+import Footer from "./components/Footer";
+
 import Home from "./Pages/Home";
 import ProductListing from "./Pages/ProductListing";
-import Footer from "./components/Footer";
 import ProductDetails from "./Pages/ProductDetails";
-import ProductZoom from "./components/ProductZoom";
-import { IoCloseSharp } from "react-icons/io5";
-
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import ProductDetailsComponent from "./components/ProductDetails";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import CartPage from "./Pages/Cart";
 import Verify from "./Pages/Verify";
 import ForgotPassword from "./Pages/ForgotPassword";
-
-import toast, { Toaster } from "react-hot-toast";
-import { MyContext } from "./context/MyContext";
 import Checkout from "./Pages/Checkout";
 import MyAccount from "./Pages/MyAccount";
 import MyList from "./Pages/MyList";
 import Orders from "./Pages/Orders";
 
+import ProductZoom from "./components/ProductZoom";
+import ProductDetailsComponent from "./components/ProductDetails";
 
-// app-level alert helper will be defined inside component
+import { IoCloseSharp } from "react-icons/io5";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+
+import toast, { Toaster } from "react-hot-toast";
+import { MyContext } from "./context/MyContext";
 
 function App() {
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
-  const [fullWidth, _setFullWidth] = useState(true);
-  const [maxWidth, _setMaxWidth] = useState("lg");
-  const [isLogin, setIsLogin] = useState(true);
+  const [openCartPanel, setOpenCartPanel] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
+
   const API_URL = import.meta.env.VITE_API_URL;
-  const [openCartPanel, setOpenCartPanel] = React.useState(false);
 
   const handleCloseProductDetailsModal = () => {
     setOpenProductDetailsModal(false);
@@ -50,21 +49,21 @@ function App() {
     if (status === "error") toast.error(msg);
   };
 
-  const values = {
+  const contextValues = {
+    API_URL,
     setOpenProductDetailsModal,
+    openCartPanel,
     setOpenCartPanel,
     toggleCartPanel,
-    openCartPanel,
     openAlertBox,
     isLogin,
-    login: isLogin,
-    setIsLogin 
+    setIsLogin,
   };
 
   return (
     <>
       <BrowserRouter>
-        <MyContext.Provider value={values}>
+        <MyContext.Provider value={contextValues}>
           <Header />
 
           <Routes>
@@ -86,29 +85,30 @@ function App() {
         </MyContext.Provider>
       </BrowserRouter>
 
-      <Toaster />
+      <Toaster position="top-right" />
 
+      {/* Product Details Modal */}
       <Dialog
         open={openProductDetailsModal}
-        fullWidth={fullWidth}
-        maxWidth={maxWidth}
+        fullWidth
+        maxWidth="lg"
         onClose={handleCloseProductDetailsModal}
         className="productDetailsModal"
       >
         <DialogContent>
-          <div className="flex items-center w-full productDetailsModalContainer relative">
+          <div className="flex w-full relative productDetailsModalContainer">
             <Button
               onClick={handleCloseProductDetailsModal}
-              className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[15px] right-[5px] !bg-[#f1f1f1]"
+              className="!absolute top-[15px] right-[5px] !w-[40px] !h-[40px] !min-w-[40px] !rounded-full !bg-[#f1f1f1]"
             >
-              <IoCloseSharp className="text-[20px]" />
+              <IoCloseSharp className="text-[20px] text-black" />
             </Button>
 
-            <div className="col1 w-[40%] px-3">
+            <div className="w-[40%] px-3">
               <ProductZoom />
             </div>
 
-            <div className="col2 w-[60%] py-8 px-8 pr-16 productContent">
+            <div className="w-[60%] py-8 px-8 pr-16">
               <ProductDetailsComponent />
             </div>
           </div>
@@ -117,6 +117,5 @@ function App() {
     </>
   );
 }
-
 
 export default App;

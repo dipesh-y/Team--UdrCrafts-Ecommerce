@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
@@ -9,8 +10,12 @@ import { postData } from "../../utils/api";
 
 const Login = () => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
-  const [formFields, setFormFields] = useState({ email: "", password: "" });
+  const [formFields, setFormFields] = useState({
+    email: "",
+    password: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
+
   const context = useContext(MyContext);
   const navigate = useNavigate();
 
@@ -20,29 +25,44 @@ const Login = () => {
   };
 
   const forgotPassword = () => {
-    context.openAlertBox("success", "OTP sent (use Forgot Password flow)");
+    context.openAlertBox("success", "Redirecting to Forgot Password");
     navigate("/forgot-password");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formFields.email || !formFields.password) {
+
+    if (!formFields.email.trim() || !formFields.password.trim()) {
       context.openAlertBox("error", "Please enter email and password");
       return;
     }
+
     setIsLoading(true);
+
     try {
-      const res = await postData('/api/login', formFields);
-      if (res && res.success) {
-        context.openAlertBox('success', res.message || 'Login successful');
-        if (typeof context.setIsLogin === 'function') context.setIsLogin(true);
-        navigate('/');
+      const res = await postData("/api/user/login", formFields, {
+        withCredentials: true,
+      });
+
+      if (res?.success) {
+        context.openAlertBox("success", res.message || "Login successful");
+
+        context.setIsLogin?.(true);
+
+        if (res?.data?.accessToken) {
+          localStorage.setItem("accessToken", res.data.accessToken);
+          localStorage.setItem("refreshToken", res.data.refreshToken);
+        }
+
+        context.setUserData?.(res?.data?.user || res?.data);
+
+        navigate("/");
       } else {
-        context.openAlertBox('error', res.message || 'Login failed');
+        context.openAlertBox("error", res?.message || "Login failed");
       }
-    } catch (err) {
-      console.error(err);
-      context.openAlertBox('error', 'Login failed');
+    } catch (error) {
+      console.error("Login error:", error);
+      context.openAlertBox("error", "Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
     }
@@ -60,63 +80,73 @@ const Login = () => {
             <div className="form-group w-full mb-5">
               <TextField
                 type="email"
-                id="email"
-                label="Email Id *"
-                variant="outlined"
-                className="w-full"
                 name="email"
-                onChange={onChange}
+                label="Email Id *"
+                className="w-full"
                 value={formFields.email}
+                onChange={onChange}
               />
             </div>
 
             <div className="form-group w-full mb-5 relative">
               <TextField
-                id="password"
+                name="password"
                 label="Password *"
-                variant="outlined"
                 type={isPasswordShow ? "text" : "password"}
                 className="w-full"
-                name="password"
-                onChange={onChange}
                 value={formFields.password}
+                onChange={onChange}
               />
 
               <Button
+                type="button"
                 onClick={() => setIsPasswordShow(!isPasswordShow)}
-                className="!absolute top-[8px] !text-black right-[8px] !w-[35px] !h-[35px] !min-w-[35px] !rounded-full"
+                className="!absolute top-[8px] right-[8px] !w-[35px] !h-[35px]"
               >
                 {isPasswordShow ? (
-                  <IoMdEye className="opacity-75 text-[25px]" />
+                  <IoMdEye className="text-[22px]" />
                 ) : (
-                  <IoMdEyeOff className="opacity-75 text-[25px]" />
+                  <IoMdEyeOff className="text-[22px]" />
                 )}
               </Button>
             </div>
 
-            <a className="link cursor-pointer text-[15px] font-[600]" onClick={forgotPassword}>
-              Forget Password?
-            </a>
+            <button
+              type="button"
+              onClick={forgotPassword}
+              className="link cursor-pointer text-[15px] font-[600]"
+            >
+              Forgot Password?
+            </button>
 
-            <div className="flex items-center w-full mt-3 mb-3">
-              <Button className="btn-org w-full btn-lg" type="submit" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
-              </Button>
-            </div>
-            <p className="text-center">
+            <Button
+              className="btn-org w-full btn-lg mt-3"
+              type="submit"
+              disabled={isLoading}
+              startIcon={isLoading && <CircularProgress size={18} />}
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
+
+            <p className="text-center mt-3">
               Not Registered?{" "}
               <Link
-                className="link text-[14px] font-[600] text-primary"
+                className="text-[14px] font-[600] text-primary"
                 to="/register"
               >
-                Sign Up{" "}
+                Sign Up
               </Link>
             </p>
-            <p className=" text-center font-[500]">
-              {" "}
+
+            <p className="text-center font-[500] mt-2">
               Or continue with social account
             </p>
-            <Button className="flex gap-3 w-full  !bg-[#f1f1f1] btn-lg !text-black">
+
+            <Button
+              disabled={isLoading}
+              className="flex gap-3 w-full !bg-[#f1f1f1] btn-lg !text-black mt-2"
+              type="button"
+            >
               <FcGoogle className="text-[20px]" />
               Login with Google
             </Button>
