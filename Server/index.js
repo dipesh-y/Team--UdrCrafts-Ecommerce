@@ -18,14 +18,16 @@ dotenv.config();
 const app = express();
 
 
+
 app.use(
   cors({
-    origin: "http://localhost:5175",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: "http://localhost:5173", // 👈 EXACT frontend URL
+    credentials: true,               // 👈 REQUIRED for cookies/JWT
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
-); // ✅ this should close here
+);
+ // ✅ this should close here
 
 // VERY IMPORTANT — handle preflight
 app.options("/", cors());
