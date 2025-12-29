@@ -1,10 +1,12 @@
 import UserModel from '../models/usermodel.js'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import sendEmailFun from '../config/sendEmail.js';
+// import sendEmailFun from '../config/sendEmail.js';
 import VerificationEmail from '../utils/verifyEmailTemplate.js';
 import generatedAccessToken from '../utils/generatedAccessToken.js';
 import generatedRefreshToken from '../utils/generatedRefreshToken.js';
+import sendEmailFun from "../utils/sendEmailFun.js";
+
 import fs from 'fs';
 import cloudinary from '../config/cloudinaryconfig.js';
 
@@ -59,13 +61,30 @@ export async function registerUserController(request, response) {
 
         await user.save();
 
-        //send verification email
-        const verifyEmail = await sendEmailFun({
-            sendTo: email,
-            subject: "Verify email from Ecommerce App",
-            text: "",
-            html: VerificationEmail(name, verifyCode)
-        })
+        // send verification email
+        // const verifyEmail = await sendEmailFun({
+        //     sendTo: email,
+        //     subject: "Verify email from Ecommerce App",
+        //     text: "",
+        //     html: VerificationEmail(name, verifyCode)
+        // })
+
+        try {
+  await sendEmailFun({
+    sendTo: email,
+    subject: "Verify email from Ecommerce App",
+    html: VerificationEmail(name, verifyCode),
+  });
+} catch (emailError) {
+  console.error("EMAIL SEND FAILED:", emailError);
+
+  return response.status(500).json({
+    success: false,
+    error: true,
+    message: "Failed to send verification email",
+  });
+}
+
 
         //Create a JWT token for verification purposes
         const token = jwt.sign(
@@ -487,7 +506,7 @@ export async function forgotPasswordController(request, response) {
 
             await sendEmailFun({
                 sendTo: email,
-                subject: "Verify email from Ecommerce App",
+                subject: "Verify OTP from Ecommerce App",
                 text: "",
                 html: VerificationEmail(user.name, verifyCode)
             })

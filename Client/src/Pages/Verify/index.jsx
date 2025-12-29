@@ -21,32 +21,86 @@ const Verify = () => {
     setOtp(value);
   };
 
+  // const verifyOTP = async (e) => {
+  //   e.preventDefault();
+  //   if (!email) {
+  //     context.openAlertBox("error", "Missing email to verify.");
+  //     return;
+  //   }
+  //   if (!otp || otp.length < 4) {
+  //     context.openAlertBox("error", "Please enter the complete OTP.");
+  //     return;
+  //   }
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await postData("/api/user/verifyEmail", { email, otp })
+  //     if (res && res.success) {
+  //       context.openAlertBox("success", res.message || "Email verified successfully");
+  //       navigate('/login');
+  //     } else {
+  //       context.openAlertBox("error", res.message || "Invalid OTP");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     context.openAlertBox("error", "Verification failed. Try again.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const verifyOTP = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      context.openAlertBox("error", "Missing email to verify.");
-      return;
+  e.preventDefault();
+
+  const actionType = location.state?.actionType;
+
+  if (!email) {
+    context.openAlertBox("error", "Missing email to verify.");
+    return;
+  }
+
+  if (!otp || otp.length < 4) {
+    context.openAlertBox("error", "Please enter the complete OTP.");
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    let res;
+
+    if (actionType === "forgot-password") {
+      // Forgot password OTP
+      res = await postData("/api/user/verify-forgot-password-otp", {
+        email,
+        otp,
+      });
+    } else {
+      //  Normal email verification
+      res = await postData("/api/user/verifyEmail", {
+        email,
+        otp,
+      });
     }
-    if (!otp || otp.length < 4) {
-      context.openAlertBox("error", "Please enter the complete OTP.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const res = await postData("/api/user/verifyEmail", { email, otp })
-      if (res && res.success) {
-        context.openAlertBox("success", res.message || "Email verified successfully");
-        navigate('/login');
-      } else {
-        context.openAlertBox("error", res.message || "Invalid OTP");
+
+    if (res?.success) {
+      context.openAlertBox("success", res.message || "Verification successful");
+
+      if (actionType === "forgot-password") {
+        navigate("/forgot-password", { state: { email } });
+        return; //  STOP HERE
       }
-    } catch (err) {
-      console.error(err);
-      context.openAlertBox("error", "Verification failed. Try again.");
-    } finally {
-      setIsLoading(false);
+
+      navigate("/login");
+    } else {
+      context.openAlertBox("error", res.message || "Invalid OTP");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    context.openAlertBox("error", "Verification failed. Try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <section className="section py-10">

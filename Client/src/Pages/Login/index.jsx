@@ -25,9 +25,28 @@ const Login = () => {
     setFormFields((prev) => ({ ...prev, [name]: value }));
   };
 
-  const forgotPassword = () => {
-    openAlertBox("success", "Redirecting to Forgot Password");
-    navigate("/forgot-password");
+  const forgotPassword = async () => {
+    // openAlertBox("success", "Redirecting to Forgot Password");
+    // navigate("/forgot-password");
+    if (!formFields.email.trim()){
+          openAlertBox("error", "Please enter email id");
+                return;
+    }
+                    try {
+                      const res = await postData("/api/user/forgot-password", { email: formFields.email });
+                      if (res && res.success) {
+                      openAlertBox("success", res.message || `OTP sent to ${formFields.email}`);
+                        navigate('/verify', { state: {email: formFields.email, actionType: 'forgot-password'}});
+                      } else {
+                      openAlertBox("error", res.message || "Failed to dend OTP");
+                      }
+                    } catch (err) {
+                      console.error(err);
+                    openAlertBox("error", "Verification failed. Try again.");
+                    } finally {
+                      setIsLoading(false);
+                    }
+    
   };
 
   const handleSubmit = async (e) => {
@@ -118,7 +137,7 @@ const Login = () => {
             <button
               type="button"
               onClick={forgotPassword}
-              className="link cursor-pointer text-[15px] font-[600]"
+              className="link cursor-pointer text-[15px] font-[600] mb-3"
             >
               Forgot Password?
             </button>
