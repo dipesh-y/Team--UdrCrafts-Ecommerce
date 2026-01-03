@@ -77,7 +77,7 @@ Notes
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
-```
+``` 
 
 - If `git push` fails due to authentication, ensure your remote `origin` is configured, or set up SSH/HTTPS credentials.
 - After pushing, open a PR if you created a branch, or notify your team if pushing directly to `master` is allowed.
