@@ -11,34 +11,34 @@ import { postData } from "../../utils/api";
 const ForgotPassword = () => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
   const [isPasswordShow2, setIsPasswordShow2] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-   const [formFields, setFormFields] = useState({
+  const [formFields, setFormFields] = useState({
     email: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    newPassword: "",
+    confirmPassword: "",
+  });
 
 
-      const {  openAlertBox } = useContext(MyContext);
+  const { openAlertBox } = useContext(MyContext);
 
-    useEffect(() => {
-  if (location.state?.email) {
-    setFormFields((prev) => ({
-      ...prev,
-      email: location.state.email,
-    }));
-  } else {
-    navigate("/forgot-password"); // safety redirect
-  }
-}, []);
+  useEffect(() => {
+    if (location.state?.email) {
+      setFormFields((prev) => ({
+        ...prev,
+        email: location.state.email,
+      }));
+    } else {
+      navigate("/forgot-password"); // safety redirect
+    }
+  }, []);
 
-    
-  
 
-   const onChange = (e) => {
+
+
+  const onChange = (e) => {
     const { name, value } = e.target;
     setFormFields((prev) => ({ ...prev, [name]: value }));
   };
@@ -46,55 +46,55 @@ const ForgotPassword = () => {
 
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (formFields.newPassword === "") {
-    openAlertBox("error", "Please enter new password");
-    return;
-  }
-
-  if (formFields.confirmPassword === "") {
-    openAlertBox("error", "Please enter confirm password");
-    return;
-  }
-
-  if (formFields.newPassword !== formFields.confirmPassword) {
-    openAlertBox("error", "Passwords do not match");
-    return;
-  }
-
-  setIsLoading(true);
-
-  try {
-    const res = await postData("/api/user/reset-password", {
-      email: formFields.email,
-      newPassword: formFields.newPassword,
-      confirmPassword: formFields.confirmPassword,
-    });
-
-    if (res?.success) {
-      openAlertBox("success", res.message || "Password reset successful");
-
-      localStorage.removeItem("userEmail");
-      localStorage.removeItem("actionType");
-
-      navigate("/login");
-    } else {
-      openAlertBox("error", res.message || "Reset failed");
+    if (formFields.newPassword === "") {
+      openAlertBox("error", "Please enter new password");
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    openAlertBox(
-      "error",
-      err.response?.data?.message || "Something went wrong"
-    );
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    if (formFields.confirmPassword === "") {
+      openAlertBox("error", "Please enter confirm password");
+      return;
+    }
+
+    if (formFields.newPassword !== formFields.confirmPassword) {
+      openAlertBox("error", "Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await postData("/api/user/reset-password", {
+        email: formFields.email,
+        newPassword: formFields.newPassword,
+        confirmPassword: formFields.confirmPassword,
+      });
+
+      if (res?.success) {
+        openAlertBox("success", res.message || "Password reset successful");
+
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("actionType");
+
+        navigate("/login");
+      } else {
+        openAlertBox("error", res.message || "Reset failed");
+      }
+    } catch (err) {
+      console.error(err);
+      openAlertBox(
+        "error",
+        err.response?.data?.message || "Something went wrong"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
-  
+
   return (
     <section className="section py-10">
       <div className="container">

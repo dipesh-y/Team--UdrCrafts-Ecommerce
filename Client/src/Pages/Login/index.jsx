@@ -28,25 +28,25 @@ const Login = () => {
   const forgotPassword = async () => {
     // openAlertBox("success", "Redirecting to Forgot Password");
     // navigate("/forgot-password");
-    if (!formFields.email.trim()){
-          openAlertBox("error", "Please enter email id");
-                return;
+    if (!formFields.email.trim()) {
+      openAlertBox("error", "Please enter email id");
+      return;
     }
-                    try {
-                      const res = await postData("/api/user/forgot-password", { email: formFields.email });
-                      if (res && res.success) {
-                      openAlertBox("success", res.message || `OTP sent to ${formFields.email}`);
-                        navigate('/verify', { state: {email: formFields.email, actionType: 'forgot-password'}});
-                      } else {
-                      openAlertBox("error", res.message || "Failed to dend OTP");
-                      }
-                    } catch (err) {
-                      console.error(err);
-                    openAlertBox("error", "Verification failed. Try again.");
-                    } finally {
-                      setIsLoading(false);
-                    }
-    
+    try {
+      const res = await postData("/api/user/forgot-password", { email: formFields.email });
+      if (res && res.success) {
+        openAlertBox("success", res.message || `OTP sent to ${formFields.email}`);
+        navigate('/verify', { state: { email: formFields.email, actionType: 'forgot-password' } });
+      } else {
+        openAlertBox("error", res.message || "Failed to dend OTP");
+      }
+    } catch (err) {
+      console.error(err);
+      openAlertBox("error", "Verification failed. Try again.");
+    } finally {
+      setIsLoading(false);
+    }
+
   };
 
   const handleSubmit = async (e) => {
