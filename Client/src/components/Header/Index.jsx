@@ -53,7 +53,7 @@ const Header = () => {
     context.openAlertBox("success", "Logged out successfully");
 
     handleMenuClose();
-    navigate("/login");
+    navigate("/");
   };
 
   return (
