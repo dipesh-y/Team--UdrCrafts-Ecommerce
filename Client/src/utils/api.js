@@ -1,9 +1,9 @@
- // utils/api.js
+// utils/api.js
 import axios from "axios";
-
 
 const apiUrl = import.meta.env.VITE_API_URL; // e.g. http://localhost:8000
 
+// 🔹 POST (JSON)
 export const postData = async (URL, data) => {
   try {
     const response = await axios.post(apiUrl + URL, data, {
@@ -17,24 +17,15 @@ export const postData = async (URL, data) => {
   }
 };
 
-<<<<<<< HEAD
-
-export const editData = async (URL, data) => {
+// 🔹 PUT (JSON data)
+export const editData = async (URL, updateData, params = {}) => {
   try {
-    const response = await axios.put(apiUrl + URL, data, {
-=======
-export const uploadImage = async (URL, updateData, params = {}) => {
-  const res = await axios.put(
-    apiUrl + URL,
-    updateData,
-    {
-      params, // ✅ now defined
->>>>>>> 8ba69ef (changes in accountsiderbar & myaccount)
+    const response = await axios.put(apiUrl + URL, updateData, {
+      params,
       withCredentials: true,
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
       },
-<<<<<<< HEAD
     });
     return response.data;
   } catch (error) {
@@ -42,28 +33,23 @@ export const uploadImage = async (URL, updateData, params = {}) => {
     throw error;
   }
 };
-=======
-    }
-  );
 
-  return res.data;
-};
-
-
-
-export const editData = async (URL, updateData, params = {}) => {
-  const res = await axios.put(
-    apiUrl + URL,
-    updateData,
-    {
-      params, // ✅ now defined
+// 🔹 PUT (Image / multipart)
+export const uploadImage = async (URL, updateData, params = {}) => {
+  try {
+    const response = await axios.put(apiUrl + URL, updateData, {
+      params,
       withCredentials: true,
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
-    }
-  );
-
-  return res.data;
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "uploadImage error:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
 };
->>>>>>> 8ba69ef (changes in accountsiderbar & myaccount)
