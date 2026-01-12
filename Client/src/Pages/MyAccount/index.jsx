@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { editData, postData } from "../../Utils/Api.js";
+import { editData, postData } from "../../utils/api.js";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import AccountSidebar from "../../Components/AccountSidebar/index.jsx";
+import AccountSidebar from "../../components/AccountSidebar/index.jsx";
 import { Collapse } from "react-collapse";
 import { MyContext } from "../../context/MyContext";
 import { useNavigate } from "react-router-dom";
@@ -109,6 +109,11 @@ const history =useNavigate();
   const handleSubmitChangePassword = (e) => {
     e.preventDefault();
 
+    if (changePassword.oldPassword === "") {
+  openAlertBox("error", "Please enter old password");
+      return;
+    }
+
     if (changePassword.newPassword !== changePassword.confirmPassword) {
   openAlertBox("error", "Password and Confirm Password do not match");
       return;
@@ -131,9 +136,9 @@ const history =useNavigate();
            openAlertBox("error", res?.message);
         }
       })
-      .catch(() => {
+      .catch((err) => {
         setIsLoading2(false);
-         openAlertBox("error", "Password change failed. Try again.");
+         openAlertBox("error", err?.response?.data?.message || "Password change failed. Try again.");
       });
   };
 
