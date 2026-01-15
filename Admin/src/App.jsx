@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { createContext, useState,useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -24,11 +24,17 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VerifyAccount from "./pages/VerifyAccount";
 import ChangePassword from "./pages/ChangePassword";
 import OtpBox from "./components/OtpBox";
+import { TbCodeAsterisk } from "react-icons/tb";
+import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
+
+import toast, { Toaster } from "react-hot-toast";
 
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLogin, setIsLogin] = useState(false);
+  const [userData, setUserData] = useState(null);
  const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
     model : "",
@@ -40,7 +46,7 @@ const App = () => {
 });
   
 
-
+const context = createContext(MyContext);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const router = createBrowserRouter([
@@ -252,7 +258,7 @@ const App = () => {
     },
      
   ]);
-    const [productRows, setProductRows] = useState([
+    const [productRows, setProductRows] = useState([ 
     createData(
       1,
       "Vegetable Steamer for Cooking",
@@ -384,6 +390,14 @@ function createData(
   return { id, name, category, subCategory, oldPrice, newPrice, stock };
 }
 
+ const alertBox=(type,msg)=>{
+  if(type==='success'){
+    toast.success(msg);
+  }
+  if(type==='error'){
+    toast.error(msg);
+  }
+ }
 
   const values = {
     isSidebarOpen,
@@ -392,8 +406,68 @@ function createData(
     setIsLogin,
     isOpenFullScreenPanel,
     setIsOpenFullScreenPanel,
-    productRows
+    productRows,
+    alertBox,
+    userData,
+    setUserData
+
   };
+
+/*useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/user/user-details`,
+          { withCredentials: true }
+        );
+
+
+        if (res.data.success) {
+          setUserData(res.data.data);
+          setIsLogin(true);
+        }
+      } catch (err) {
+        setUserData(null);
+        setIsLogin(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+*/
+
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    setIsLogin(false);
+    setUserData(null);
+    return;
+  }
+
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(
+        `${API_URL}/api/user/user-details`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setUserData(res.data.data);
+        setIsLogin(true);
+      }
+    } catch (err) {
+      setUserData(null);
+      setIsLogin(false);
+    }
+  };
+
+  fetchUser();
+}, []);
 
 
 
@@ -445,6 +519,8 @@ function createData(
         }
       </
       Dialog>
+      
+      <Toaster/>
 
     </MyContext.Provider>
   );

@@ -63,3 +63,5 @@ a.active button{background: #e8e8e8 !important;}
 .otpPage .container{height:90vh; display: flex;}
 
 .MuiTableBody-root tr:nth-child(even){@apply bg-gray-50}
+
+button .MuiCircularProgress-root{width:30px m !important;height: 30px !important;};

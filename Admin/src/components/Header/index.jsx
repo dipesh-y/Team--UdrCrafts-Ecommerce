@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import Button from "@mui/material/Button";
 import { RiMenu2Line } from "react-icons/ri";
 import Badge from "@mui/material/Badge";
+import { Link, useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import { FaRegBell, FaRegUser } from "react-icons/fa";
@@ -20,6 +21,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
+
 const Header = ({ toggleSidebar, isSidebarOpen }) => {
   const [anchorMyAcc, setAnchorMyAcc] = useState(null);
   const openMyAcc = Boolean(anchorMyAcc);
@@ -31,7 +33,18 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
     setAnchorMyAcc(null);
   };
 
+  const navigate = useNavigate();
   const context = useContext(MyContext); 
+const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    context.setIsLogin(false);
+    context.alertBox("success", "Logged out successfully");
+
+    handleCloseMyAcc();
+    navigate("/");
+  };
 
   return (
     <header
@@ -113,10 +126,12 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
 
                 <div className="info">
                   <h3 className="text-[15px] font-[500] leading-5">
-                    Angelina Gotelli
+                    {context?.userData?.name}
                   </h3>
                   <p className="text-[12px] font-[400] opacity-70">
-                    admin-01@ecme.com
+                   
+                    {context?.userData?.email}
+
                   </p>
                 </div>
               </div>
@@ -129,7 +144,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
               <span className="text-[14px]">Profile</span>
             </MenuItem>
 
-            <MenuItem className="flex items-center gap-3">
+            <MenuItem className="flex items-center gap-3" onClick={handleLogout}>
               <IoMdLogOut className="text-[18px]" />{" "}
               <span className="text-[14px]">Sign Out</span>
             </MenuItem>
@@ -138,7 +153,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
 
         :
 
-            <Button className="!bg-blue-600 hover:!bg-blue-700 !text-white !rounded-full !normal-case !px-4 !py-2">Sign In</Button>
+            <Button onClick={() => navigate("/login")} className="!bg-blue-600 hover:!bg-blue-700 !text-white !rounded-full !normal-case !px-4 !py-2">Sign In</Button>
         }
 
         

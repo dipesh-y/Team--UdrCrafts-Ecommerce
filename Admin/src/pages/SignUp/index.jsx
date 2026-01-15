@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useState } from "react";
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import Button from "../../components/Button";
 import { CgLogIn } from "react-icons/cg";
 import { FaRegUser } from "react-icons/fa6";
@@ -12,55 +12,184 @@ import Checkbox from '@mui/material/Checkbox';
 import { FormControlLabel } from '@mui/material';
 import { FaRegEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import { postData } from '../../utils copy/api';
+import CircularProgress from '@mui/material/CircularProgress';
+`import Button from '@mui/material/Button'`;
+import MyContext from "../../context/MyContext";
+
+
+
 
 
 const SignUp = () => {
   const [loadingGoogle, setLoadingGoogle] = React.useState(false);
   const [loadingFb, setLoadingFb] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const[isPasswordShow, setisPassword]= useState(false);
+  const [isPasswordShow, setisPassword] = useState(false);
+  const [formFields, setFormFields] = useState({
+    name: "",
+    email: "",
+    password: ""
+  })
 
-  function handleClickGoogle(){
+  const navigate = useNavigate();
+
+  const onChangeInput = (e) => {
+    const { name, value } = e.target;
+    setFormFields(() => {
+      return {
+        ...formFields,
+        [name]: value
+      }
+    })
+  }
+const context = useContext(MyContext);
+  const validateValue = Object.values(formFields).every(el => el);
+
+
+ 
+/*  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formFields.name.trim()) {
+      context.alertBox("error", "Please enter full name");
+      return;
+    }
+
+    if (!formFields.email.trim()) {
+      context.alertBox("error", "Please enter email id");
+      return;
+    }
+
+    if (!formFields.password.trim()) {
+      context.alertBox("error", "Please enter password");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await postData("/api/user/register", formFields);
+
+      if (response?.success) {
+        context.alertBox(
+          "success",
+          "Registration successful. Please verify your email."
+        );
+        navigate("/verify", { state: { email: formFields.email } });
+      } else {
+        context.alertBox(
+          "error",
+          response?.message || "Registration failed"
+        );
+      }
+    } catch (error) {
+      console.error("Register Error:", error);
+      context.alertBox("error", "Something went wrong. Try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+*/
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!formFields.name.trim()) {
+    context.alertBox("error", "Please enter full name");
+    return;
+  }
+
+  if (!formFields.email.trim()) {
+    context.alertBox("error", "Please enter email id");
+    return;
+  }
+
+  if (!formFields.password.trim()) {
+    context.alertBox("error", "Please enter password");
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = await postData("/api/user/register", formFields);
+
+    if (response?.success) {
+      context.alertBox(
+        "success",
+        "Registration successful. Please verify your email."
+      );
+      navigate("/verify-account", {
+        state: { email: formFields.email },
+      });
+    } else {
+      context.alertBox(
+        "error",
+        response?.message || "Registration failed"
+      );
+    }
+  } catch (error) {
+    console.error("Register Error:", error);
+    context.alertBox("error", "Something went wrong. Try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+  function handleClickGoogle() {
     setLoadingGoogle(true);
   }
 
-  function handleClickFb(){
+  function handleClickFb() {
     setLoadingFb(true);
   }
+
+
+
+
+
+
+
   return (
     <section className="bg-white w-full ">
       <header className='w-full fixed top-0 left-0 px-4 py-3 flex items-center justify-between z-50'>
         <Link to="/">
-          <img 
+          <img
             src="https://isomorphic-furyroad.vercel.app/_next/static/media/logo.a795e14a.svg"
             className="w-[200px]"
           />
         </Link>
 
         <div className="flex items-center gap-0">
-          <NavLink to ="/login" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
+          <NavLink to="/login" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
             <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-1">
-              <CgLogIn className="text-[18px]"/>Login
+              <CgLogIn className="text-[18px]" />Login
             </Button>
           </NavLink>
 
-            <NavLink to ="/sign-up" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
-                <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-1">
-                    <FaRegUser className="text-[15px]"/>Sign Up
-                </Button>
-            </NavLink>    
+          <NavLink to="/sign-up" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
+            <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-1">
+              <FaRegUser className="text-[15px]" />Sign Up
+            </Button>
+          </NavLink>
         </div>
       </header>
-      <img src="/pattern.webp" alt="" className="w-full fixed top-0 left-0 opacity-5 "/>
+      <img src="/pattern.webp" alt="" className="w-full fixed top-0 left-0 opacity-5 " />
 
       <div className="loginBox card w-[600px] h-[auto] pb-20 mx-auto pt-20 relative z-50">
         <div className="text-center">
-            <img src="/icon.svg" className="m-auto"/>
+          <img src="/icon.svg" className="m-auto" />
         </div>
 
         <h1 className="text-center text-[35px] font-[800] mt-4">
           Join us today! Get special
-          <br/>
+          <br />
           benefits and stay up-to-date.
         </h1>
 
@@ -91,69 +220,86 @@ const SignUp = () => {
 
         </div>
 
-        <br/>
+        <br />
 
         <div className="w-full flex items-center justify-center gap-3">
           <span className="flex items-center w-[100px] h-[1px] bg-[rgba(0,0,0,0.2)]"></span>
-            <span className="text-[14px] font-[500]">Or, Sign in with your email</span>
+          <span className="text-[14px] font-[500]">Or, Sign in with your email</span>
           <span className="flex items-center w-[100px] h-[1px] bg-[rgba(0,0,0,0.2)]"></span>
         </div>
 
-        <br/>
+        <br />
 
-        <form className='w-full px-8 mt-3'>
-            <div className='form-group mb-4 w-full'>
-                <h4 className='text-[14px] font-[500] mb-1'>Full Name</h4>
-                <input 
-                    type='text'
-                    className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
+        <form className='w-full px-8 mt-3' onSubmit={handleSubmit}>
+          <div className='form-group mb-4 w-full'>
+            <h4 className='text-[14px] font-[500] mb-1'>Full Name</h4>
+            <input
+              type='text'
+              className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                     focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-                />
-            </div>
+              name='name'
+              value={formFields.name}
+              disabled={isLoading === true ? true : false}
+              onChange={onChangeInput}
+            />
+          </div>
 
-            <div className='form-group mb-4 w-full'>
-                <h4 className='text-[14px] font-[500] mb-1'>Email</h4>
-                <input 
-                    type='email'
-                    className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
+          <div className='form-group mb-4 w-full'>
+            <h4 className='text-[14px] font-[500] mb-1'>Email</h4>
+            <input
+              type='email'
+              className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                     focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-                />
-            </div>
+              name='email'
+              value={formFields.email}
+              disabled={isLoading === true ? true : false}
+              onChange={onChangeInput}
+            />
+          </div>
 
-            <div className='form-group mb-4 w-full'>
-                <h4 className='text-[14px] font-[500] mb-1'>Password</h4>
-                <div className='relative w-full'>
-                    <input 
-                        type={isPasswordShow===false ?'password' : 'text'}
-                        className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
+          <div className='form-group mb-4 w-full'>
+            <h4 className='text-[14px] font-[500] mb-1'>Password</h4>
+            <div className='relative w-full'>
+              <input
+                type={isPasswordShow === false ? 'password' : 'text'}
+                className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                         focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-                    />
-                    <Button className="!absolute top-[7px] right-[10px] z-50 !rounded-full !w-[35px]
-                    !h-[35px] !min-w-[35px] !text-gray-600" onClick={()=>setisPassword
-                    (!isPasswordShow)}>
-                        {
-                        isPasswordShow===false ? (
-                            <FaRegEye className='text-[16px] text-blue-600 '/> 
-                        ) : (
-                            <FaEyeSlash className='text-[16px] text-blue-600 '/>
-                        )}
-                    </Button>
-                </div>
+                name="password"
+                value={formFields.password}
+                disabled={isLoading === true ? true : false}
+                onChange={onChangeInput}
+              />
+              <Button className="!absolute top-[7px] right-[10px] z-50 !rounded-full !w-[35px]
+                    !h-[35px] !min-w-[35px] !text-gray-600" onClick={() => setisPassword
+                  (!isPasswordShow)}>
+                {
+                  isPasswordShow === false ? (
+                    <FaRegEye className='text-[16px] text-blue-600 ' />
+                  ) : (
+                    <FaEyeSlash className='text-[16px] text-blue-600 ' />
+                  )}
+              </Button>
             </div>
+          </div>
 
-            <div className='form-group mb-4 w-full flex items-center justify-between'>
-                <FormControlLabel control={<Checkbox defaultChecked />} label="Remember Me" />
+          <div className='form-group mb-4 w-full flex items-center justify-between'>
+            <FormControlLabel control={<Checkbox defaultChecked />} label="Remember Me" />
 
-                <Link
-                to="/forgot-password"
-                className="text-blue-600 font-[700] text-[15px] hover:underline hover:text-gray-700"
-                >
-                Forgot Password?
-                </Link>
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 font-[700] text-[15px] hover:underline hover:text-gray-700"
+            >
+              Forgot Password?
+            </Link>
 
-            </div>
+          </div>
 
-          <Button className="btn-blue btn-lg uppercase w-full">Sign Up</Button>
+          <Button type='submit' className="btn-blue btn-lg uppercase w-full" disabled={!validateValue}>
+            {
+              isLoading === true ? <CircularProgress color='inherit' />
+                : 'Sign Up'
+            }
+          </Button>
         </form>
       </div>
     </section>
