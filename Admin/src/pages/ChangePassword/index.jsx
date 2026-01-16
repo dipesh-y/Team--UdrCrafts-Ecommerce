@@ -19,6 +19,7 @@ const ChangePassword = () => {
 
   const [formFields, setFormFields] = useState({
     email: "",
+    oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -33,93 +34,32 @@ const ChangePassword = () => {
     const { name, value } = e.target;
     setFormFields((prev) => ({ ...prev, [name]: value }));
   };
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!formFields.email.trim()) {
-    alertBox("error", "Please enter email");
-    return;
-  }
-
-
-  if (!formFields.newPassword.trim()) {
-    alertBox("error", "Please enter new password");
-    return;
-  }
-
-  if (!formFields.confirmPassword.trim()) {
-    alertBox("error", "Please confirm password");
-    return;
-  }
-
-  if (formFields.newPassword !== formFields.confirmPassword) {
-    alertBox("error", "Passwords do not match");
-    return;
-  }
-
-  setIsLoading(true);
-
-  try {
-    const res = await postData("/api/user/reset-password", {
-      email: formFields.email,
-      newPassword: formFields.newPassword,
-      confirmPassword: formFields.confirmPassword,
-    });
-
-    if (res?.success) {
-      alertBox("success", res.message || "Password reset successful");
-      navigate("/login");
-    } else {
-      alertBox("error", res?.message || "Reset failed");
-    }
-  } catch (err) {
-    alertBox("error", err.response?.data?.message || "Something went wrong");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-
- /* const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formFields.email.trim()) {
-  openAlertBox("error", "Please enter email");
-  return;
-}
-if (!formFields.email.trim()) {
-  openAlertBox("error", "Please enter email");
-  return;
-}
-
-if (!formFields.newPassword.trim()) {
-  openAlertBox("error", "Please enter new password");
-  return;
-}
-
-if (!formFields.confirmPassword.trim()) {
-  openAlertBox("error", "Please confirm your password");
-  return;
-}
-
-if (formFields.newPassword !== formFields.confirmPassword) {
-  openAlertBox("error", "Passwords do not match");
-  return;
-}
-
-
-    if (formFields.newPassword === "") {
-      openAlertBox("error", "Please enter new password");
+      alertBox("error", "Please enter email");
       return;
     }
 
-    if (formFields.confirmPassword === "") {
-      openAlertBox("error", "Please enter confirm password");
+    if (!formFields.oldPassword.trim()) {
+      alertBox("error", "Please enter old password");
+      return;
+    }
+
+
+    if (!formFields.newPassword.trim()) {
+      alertBox("error", "Please enter new password");
+      return;
+    }
+
+    if (!formFields.confirmPassword.trim()) {
+      alertBox("error", "Please confirm password");
       return;
     }
 
     if (formFields.newPassword !== formFields.confirmPassword) {
-      openAlertBox("error", "Passwords do not match");
+      alertBox("error", "Passwords do not match");
       return;
     }
 
@@ -128,31 +68,98 @@ if (formFields.newPassword !== formFields.confirmPassword) {
     try {
       const res = await postData("/api/user/reset-password", {
         email: formFields.email,
+        oldPassword: formFields.oldPassword,
         newPassword: formFields.newPassword,
         confirmPassword: formFields.confirmPassword,
       });
 
       if (res?.success) {
-        openAlertBox("success", res.message || "Password reset successful");
-
-        localStorage.removeItem("userEmail");
-        localStorage.removeItem("actionType");
-
+        alertBox("success", res.message || "Password reset successful");
         navigate("/login");
       } else {
-        openAlertBox("error", res.message || "Reset failed");
+        alertBox("error", res?.message || "Reset failed");
       }
     } catch (err) {
-      console.error(err);
-      openAlertBox(
-        "error",
-        err.response?.data?.message || "Something went wrong"
-      );
+      alertBox("error", err.response?.data?.message || "Something went wrong");
     } finally {
       setIsLoading(false);
     }
   };
-*/
+
+
+
+  /* const handleSubmit = async (e) => {
+     e.preventDefault();
+     if (!formFields.email.trim()) {
+   openAlertBox("error", "Please enter email");
+   return;
+ }
+ if (!formFields.email.trim()) {
+   openAlertBox("error", "Please enter email");
+   return;
+ }
+ 
+ if (!formFields.newPassword.trim()) {
+   openAlertBox("error", "Please enter new password");
+   return;
+ }
+ 
+ if (!formFields.confirmPassword.trim()) {
+   openAlertBox("error", "Please confirm your password");
+   return;
+ }
+ 
+ if (formFields.newPassword !== formFields.confirmPassword) {
+   openAlertBox("error", "Passwords do not match");
+   return;
+ }
+ 
+ 
+     if (formFields.newPassword === "") {
+       openAlertBox("error", "Please enter new password");
+       return;
+     }
+ 
+     if (formFields.confirmPassword === "") {
+       openAlertBox("error", "Please enter confirm password");
+       return;
+     }
+ 
+     if (formFields.newPassword !== formFields.confirmPassword) {
+       openAlertBox("error", "Passwords do not match");
+       return;
+     }
+ 
+     setIsLoading(true);
+ 
+     try {
+       const res = await postData("/api/user/reset-password", {
+         email: formFields.email,
+         newPassword: formFields.newPassword,
+         confirmPassword: formFields.confirmPassword,
+       });
+ 
+       if (res?.success) {
+         openAlertBox("success", res.message || "Password reset successful");
+ 
+         localStorage.removeItem("userEmail");
+         localStorage.removeItem("actionType");
+ 
+         navigate("/login");
+       } else {
+         openAlertBox("error", res.message || "Reset failed");
+       }
+     } catch (err) {
+       console.error(err);
+       openAlertBox(
+         "error",
+         err.response?.data?.message || "Something went wrong"
+       );
+     } finally {
+       setIsLoading(false);
+     }
+   };
+ */
 
   return (
     <section className="bg-white w-full ">
@@ -209,7 +216,21 @@ if (formFields.newPassword !== formFields.confirmPassword) {
             />
           </div>
 
-         
+          <div className='form-group mb-4 w-full'>
+            <h4 className='text-[14px] font-[500] mb-1'> Old Password</h4>
+            <input
+              type="password"
+              className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
+    focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
+              name="oldPassword"
+              value={formFields.oldPassword}
+              onChange={onChange}
+              disabled={isLoading}
+            />
+          </div>
+
+
+
 
           <div className='form-group mb-4 w-full'>
             <h4 className='text-[14px] font-[500] mb-1'> New Password</h4>

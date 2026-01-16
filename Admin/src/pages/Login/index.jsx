@@ -270,7 +270,7 @@ const Login = () => {
 
             <a
             onClick={forgotPassword}
-              className="text-blue-600 font-[700] text-[15px] hover:underline hover:text-gray-700"
+              className="text-blue-600 font-[700] text-[15px] hover:underline hover:text-gray-700 cursor-pointer"
             >
               Forgot Password?
             </a>
