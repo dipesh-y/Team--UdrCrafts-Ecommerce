@@ -604,11 +604,11 @@ export async function verifyForgotPasswordOtp(request, response) {
 export async function resetPassword(request, response) {
     try {
         const { email,oldPassword, newPassword, confirmPassword } = request.body;
-        if (!email || !oldPassword|| !newPassword || !confirmPassword) {
+        if (!email || !newPassword || !confirmPassword) {
             return response.status(400).json({
                 error: true,
                 success:false,
-                message: "Provide required fields email,oldPassword,newPassword,confirmPassword"
+                message: "Provide required fields email,newPassword,confirmPassword"
             })
         }
 
