@@ -19,6 +19,7 @@ const ChangePassword = () => {
 
   const [formFields, setFormFields] = useState({
     email: "",
+      oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -41,6 +42,12 @@ const handleSubmit = async (e) => {
     return;
   }
 
+  if (!formFields.oldPassword.trim()) {
+  alertBox("error", "Please enter old password");
+  return;
+}
+
+
   if (!formFields.newPassword.trim()) {
     alertBox("error", "Please enter new password");
     return;
@@ -61,6 +68,7 @@ const handleSubmit = async (e) => {
   try {
     const res = await postData("/api/user/reset-password", {
       email: formFields.email,
+        oldPassword: formFields.oldPassword,
       newPassword: formFields.newPassword,
       confirmPassword: formFields.confirmPassword,
     });
@@ -208,6 +216,29 @@ if (formFields.newPassword !== formFields.confirmPassword) {
             />
           </div>
 
+          <div className='form-group mb-4 w-full'>
+            <h4 className='text-[14px] font-[500] mb-1'> Old Password</h4>
+            <div className='relative w-full'>
+              <input
+                type={isPasswordShow === false ? 'password' : 'text'}
+                className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
+              focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
+                name="oldPassword"
+                value={formFields.oldPassword}
+                onChange={onChange}
+                disabled={isLoading === true ? true : false}
+              />
+              <Button className="!absolute top-[7px] right-[10px] z-50 !rounded-full !w-[35px]
+              !h-[35px] !min-w-[35px] !text-gray-600" onClick={() => setIsPasswordShow(!isPasswordShow)}>
+                {
+                  isPasswordShow === false ? (
+                    <FaRegEye className='text-[16px] text-blue-600' />
+                  ) : (
+                    <FaEyeSlash className='text-[16px] text-blue-600' />
+                  )}
+              </Button>
+            </div>
+          </div>
 
           <div className='form-group mb-4 w-full'>
             <h4 className='text-[14px] font-[500] mb-1'> New Password</h4>
@@ -256,7 +287,7 @@ if (formFields.newPassword !== formFields.confirmPassword) {
             </div>
           </div>
           <Button
-            className="btn-org w-full btn-lg mt-3"
+            className="btn-blue btn-lg uppercase w-full"
             type="submit"
             disabled={isLoading}
             startIcon={isLoading && <CircularProgress size={18} />}
