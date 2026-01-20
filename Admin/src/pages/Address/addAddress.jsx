@@ -59,11 +59,11 @@ const AddAddress = () => {
                 userId: userData?._id,
             };
 
-            console.log("FINAL PAYLOAD:", payload); // 🔥 IMPORTANT
+            console.log("FINAL PAYLOAD:", payload); 
 
             const res = await postData("/api/address/add", payload);
 
-            console.log("API RESPONSE:", res); // 🔥 IMPORTANT
+            console.log("API RESPONSE:", res); 
 
             if (!res?.error) {
                 openAlertBox?.("success", "Address added successfully");

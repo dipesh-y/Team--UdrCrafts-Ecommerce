@@ -147,7 +147,7 @@ const Profile = () => {
 
         setSnackbar({
           open: true,
-          message: res.message, // ✅ BACKEND MESSAGE
+          message: res.message, 
           severity: "success",
         });
       } else {
