@@ -12,7 +12,7 @@ const AddAddress = () => {
     const context = useContext(MyContext);
     const { userData, setIsOpenFullScreenPanel, openAlertBox } = context;
 
-    const [formData, setFormData] = useState({
+    const [formFields, setFormFields] = useState({
         address_line1: "",
         city: "",
         state: "",
@@ -29,31 +29,31 @@ const AddAddress = () => {
     const handleChangeStatus = (event) => {
         const value = event.target.value;
         setStatus(value);
-        setFormData(prev => ({ ...prev, status: value }));
+        setFormFields(prev => ({ ...prev, status: value }));
     };
 
 
-    const handleChange = (e) => {
+    const onChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormFields((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("FORM DATA:", formData);
+        console.log("FORM DATA:", formFields);
         console.log("PHONE:", phone);
         console.log("STATUS:", status);
         console.log("USER:", userData);
 
-        if (!formData.address_line1.trim()) {
+        if (!formFields.address_line1.trim()) {
             openAlertBox?.("error", "Address Line 1 is required");
             return;
         }
 
         try {
             const payload = {
-                ...formData,
+                ...formFields,
                 mobile: phone,
                 status: status,
                 userId: userData?._id,
@@ -96,10 +96,12 @@ const AddAddress = () => {
                             <label className="text-sm font-medium">Address Line 1 </label>
                             <input type="text"
                                 name="address_line1"
-                                value={formData.address_line1}
-                                onChange={handleChange}
+                                value={formFields.address_line1}
+                                onChange={onChange}
+                                disabled={isLoading}
                                 className="w-full h-[40px] border rounded p-2 text-sm"
                                 placeholder="Enter address"
+                                
                                 autoFocus
                             />
                         </div>
@@ -108,8 +110,9 @@ const AddAddress = () => {
                             <label className="text-sm font-medium">City</label>
                             <input type="text"
                                 name="city"
-                                value={formData.city}
-                                onChange={handleChange}
+                                value={formFields.city}
+                                onChange={onChange}
+                                disabled={isLoading}
                                 className="w-full h-[40px] border rounded p-2 text-sm"
                             />
                         </div>
@@ -122,9 +125,11 @@ const AddAddress = () => {
                             <input
                                 type="text"
                                 name="state"
-                                value={formData.state}
-                                onChange={handleChange}
+                                value={formFields.state}
+                                onChange={onChange}
+                                disabled={isLoading}
                                 className="w-full h-[40px] border rounded p-2 text-sm"
+                                autoFocus
                             />
                         </div>
 
@@ -133,9 +138,11 @@ const AddAddress = () => {
                             <input
                                 type="text"
                                 name="pincode"
-                                value={formData.pincode}
-                                onChange={handleChange}
+                                value={formFields.pincode}
+                                onChange={onChange}
+                                disabled={isLoading}
                                 className="w-full h-[40px] border rounded p-2 text-sm"
+                                autoFocus
                             />
                         </div>
 
@@ -144,9 +151,11 @@ const AddAddress = () => {
                             <input
                                 type="text"
                                 name="country"
-                                value={formData.country}
-                                onChange={handleChange}
+                                value={formFields.country}
+                                onChange={onChange}
+                                disabled={isLoading}
                                 className="w-full h-[40px] border rounded p-2 text-sm"
+                                autoFocus
                             />
                         </div>
                     </div>
@@ -160,7 +169,7 @@ const AddAddress = () => {
                                 value={phone}
                                 onChange={(value) => {
                                     setPhone(value);
-                                    setFormData(prev => ({ ...prev, mobile: value }));
+                                    setFormFields(prev => ({ ...prev, mobile: value }));
                                 }}
 
                                 disabled={isLoading}
@@ -195,4 +204,4 @@ const AddAddress = () => {
     );
 };
 
-export default AddAddress;
+export default AddAddress; 
