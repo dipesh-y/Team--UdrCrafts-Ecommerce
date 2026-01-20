@@ -27,9 +27,9 @@ import OtpBox from "./components/OtpBox";
 import { TbCodeAsterisk } from "react-icons/tb";
 import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
-
-
 import toast, { Toaster } from "react-hot-toast";
+import Profile from "./pages/Profile";
+import AddAddress from "./pages/Address/addAddress";
 
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -232,7 +232,7 @@ const context = createContext(MyContext);
       ),
     },
             {
-      path: "/orders", 
+      path: "/profile", 
       element: (
         <section className="main">
           <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
@@ -250,7 +250,7 @@ const context = createContext(MyContext);
                 isSidebarOpen ? "w-[82%]" : "w-full"
               }`}
             >
-              <Orders/>
+              <Profile/>
             </div>
           </div>
         </section>
@@ -425,6 +425,7 @@ function createData(
         if (res.data.success) {
           setUserData(res.data.data);
           setIsLogin(true);
+          window.location.href = "/login";
         }
       } catch (err) {
         setUserData(null);
@@ -517,8 +518,11 @@ useEffect(() => {
          {
           isOpenFullScreenPanel ?.model === "Add New Sub Category" && <AddSubCategory/>
         }
-      </
-      Dialog>
+
+        {
+          isOpenFullScreenPanel ?.model === "Add New Address" && <AddAddress/>
+        }
+      </Dialog>
       
       <Toaster/>
 

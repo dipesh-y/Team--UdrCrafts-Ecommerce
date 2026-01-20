@@ -66,6 +66,7 @@ function App() {
         if (res.data.success) {
           setUserData(res.data.data);
           setIsLogin(true);
+          window.location.href = "/login";
         }
       } catch (err) {
         setUserData(null);

@@ -12,6 +12,7 @@ import categoryRouter from './route/categoryroute.js';
 import productRouter from './route/productroute.js';
 import cartRouter from './route/cartroute.js';
 import myListRouter from './route/myList.route.js'
+import { addAddressController } from './controllers/addresscontroller.js';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use('/api/category', categoryRouter)
 app.use('/api/product', productRouter)
 app.use('/api/cart', cartRouter);
 app.use('/api/myList', myListRouter);
+app.use('/api/address', addAddressController)
 
 
 // Connect DB and start server

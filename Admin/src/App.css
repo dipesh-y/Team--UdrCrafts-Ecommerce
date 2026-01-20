@@ -65,3 +65,20 @@ a.active button{background: #e8e8e8 !important;}
 .MuiTableBody-root tr:nth-child(even){@apply bg-gray-50}
 
 button .MuiCircularProgress-root{width:30px m !important;height: 30px !important;};
+
+input[type="text"], input[type="email"]:disabled {
+  pointer-events: none;
+  background: #f1f1f1 !important;
+}
+
+.react-international-phone-input {
+  width: 100% !important; 
+}
+
+.react-international-phone-country-selector-button {
+  width: 55px !important;
+}
+
+.react-international-phone-input {
+  border: 1px solid rgba(0,0,0,0.1) !important;
+}

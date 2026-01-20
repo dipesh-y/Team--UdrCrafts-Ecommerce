@@ -8,13 +8,15 @@ import { MyContext } from "../../context/MyContext";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 
-
 const MyAccount = () => {
+  const navigate = useNavigate();
+  const { userData, setUserData, openAlertBox, isLogin } =
+    useContext(MyContext);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
   const [userId, setUserId] = useState("");
-
-  const [isChangePasswordFormShow, setisChangePasswordFormShow] =
+  const [isChangePasswordFormShow, setIsChangePasswordFormShow] =
     useState(false);
 
   const [formFields, setFormFields] = useState({
@@ -23,194 +25,177 @@ const MyAccount = () => {
     mobile: "",
   });
 
-
   const [changePassword, setChangePassword] = useState({
-    email: "",
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  const context = useContext(MyContext);
-    const {  openAlertBox } = useContext(MyContext);
-const history =useNavigate();
+  /* ------------------ AUTH GUARD ------------------ */
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (token === null) {
-      history("/login");
-    }
-  }, [context?.isLogin]);
+    if (!token) navigate("/login");
+  }, [isLogin, navigate]);
 
+  /* ------------------ LOAD USER ------------------ */
   useEffect(() => {
-    if (context?.userData?._id) {
-      setUserId(context?.userData?._id);
-      setFormFields({
-        name: context?.userData?.name || "",
-        email: context?.userData?.email || "",
-        mobile: context?.userData?.mobile
-          ? String(context?.userData?.mobile)
-          : "",
-      });
-      setChangePassword((prev) => ({
-        ...prev,
-        email: context?.userData?.email || "",
-      }));
-    }
-  }, [context?.userData]);
+    if (!userData?._id) return;
 
+    setUserId(userData._id);
+    setFormFields({
+      name: userData.name || "",
+      email: userData.email || "",
+      mobile: userData.mobile || "",
+    });
+  }, [userData]);
+
+  /* ------------------ INPUT HANDLER ------------------ */
   const onchangeInput = (e) => {
     const { name, value } = e.target;
 
-    if (["name", "email", "mobile"].includes(name)) {
-      setFormFields((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+    if (name in formFields) {
+      setFormFields((prev) => ({ ...prev, [name]: value }));
     }
 
-    if (["oldPassword", "newPassword", "confirmPassword"].includes(name)) {
-      setChangePassword((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+    if (name in changePassword) {
+      setChangePassword((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const valideValue = Object.values(formFields).every((el) => el);
-  const valideValue2 = Object.values(changePassword).every((el) => el);
+  /* ------------------ VALIDATION ------------------ */
+  const valideProfile =
+    formFields.name && formFields.email && formFields.mobile;
 
-  const handleSubmit = (e) => {
+  /* ------------------ UPDATE PROFILE ------------------ */
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!valideValue) {
-       openAlertBox("error", "Please fill all profile fields");
+    if (!valideProfile) {
+      openAlertBox("error", "Please fill all profile fields");
       return;
     }
 
     setIsLoading(true);
+    try {
+      const res = await editData(`/api/user/${userId}`, formFields);
 
-    editData(`/api/user/${userId}`, formFields)
-      .then((res) => {
-        setIsLoading(false);
-        if (res?.error !== true) {
-           openAlertBox("success", res?.data?.message);
-          context?.setUserData(res?.data?.user);
-          context?.setIsLogin(true);
-        } else {
-          openAlertBox("error", res?.data?.message);
-        }
-      })
-      .catch(() => {
-        setIsLoading(false);
-         openAlertBox("error", "Update failed. Please try again.");
-      });
+      if (!res?.error) {
+        setUserData(res?.data?.user);
+        openAlertBox("success", "Profile updated successfully");
+      } else {
+        openAlertBox("error", res?.data?.message);
+      }
+    } catch {
+      openAlertBox("error", "Profile update failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmitChangePassword = (e) => {
+  /* ------------------ CHANGE PASSWORD ------------------ */
+  const handleSubmitChangePassword = async (e) => {
     e.preventDefault();
 
-    if (changePassword.oldPassword === "") {
-  openAlertBox("error", "Please enter old password");
+    const { oldPassword, newPassword, confirmPassword } = changePassword;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      openAlertBox("error", "All password fields are required");
       return;
     }
 
-    if (changePassword.newPassword !== changePassword.confirmPassword) {
-  openAlertBox("error", "Password and Confirm Password do not match");
+    if (newPassword !== confirmPassword) {
+      openAlertBox("error", "Passwords do not match");
       return;
     }
 
     setIsLoading2(true);
-
-    postData(`/api/user/reset-password`, changePassword)
-      .then((res) => {
-        setIsLoading2(false);
-        if (res?.error !== true) {
-        openAlertBox("success", res?.message);
-          setChangePassword({
-            email: formFields.email,
-            oldPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-          });
-        } else {
-           openAlertBox("error", res?.message);
-        }
-      })
-      .catch((err) => {
-        setIsLoading2(false);
-         openAlertBox("error", err?.response?.data?.message || "Password change failed. Try again.");
+    try {
+      const res = await postData(`/api/user/reset-password`, {
+        oldPassword,
+        newPassword,
       });
+
+      if (!res?.error) {
+        openAlertBox("success", "Password changed successfully");
+        setIsChangePasswordFormShow(false);
+        setChangePassword({
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        openAlertBox("error", res?.message);
+      }
+    } catch (err) {
+      openAlertBox(
+        "error",
+        err?.response?.data?.message || "Password change failed"
+      );
+    } finally {
+      setIsLoading2(false);
+    }
   };
 
   return (
     <section className="py-10 w-full">
       <div className="container flex flex-col lg:flex-row gap-5">
-        <div className="col1 w-full lg:w-[20%]">
+        <div className="w-full lg:w-[20%]">
           <AccountSidebar />
         </div>
 
-        <div className="col2 w-full lg:w-[50%]">
-          <div className="card bg-white p-5 shadow-md rounded-md !mb-5">
-            <div className="flex items-center pb-3">
-              <h2 className="text-[20px] font-[600] pb-0">My Profile</h2>
+        <div className="w-full lg:w-[50%]">
+          {/* PROFILE CARD */}
+          <div className="card bg-white p-5 shadow-md rounded-md mb-5">
+            <div className="flex items-center">
+              <h2 className="text-[20px] font-[600]">My Profile</h2>
               <Button
                 className="!ml-auto"
                 onClick={() =>
-                  setisChangePasswordFormShow(!isChangePasswordFormShow)
+                  setIsChangePasswordFormShow((prev) => !prev)
                 }
               >
-                Change Password
+                {isChangePasswordFormShow ? "Cancel" : "Change Password"}
               </Button>
             </div>
-            <hr />
+            <hr className="my-4" />
 
-            <form className="!mt-8" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 ">
-                <div className="col">
-                  <TextField
-                    label="Full Name"
-                    variant="outlined"
-                    size="small"
-                    className="w-full"
-                    name="name"
-                    value={formFields.name}
-                    disabled={isLoading}
-                    onChange={onchangeInput}
-                  />
-                </div>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <TextField
+                  label="Full Name"
+                  name="name"
+                  value={formFields.name}
+                  onChange={onchangeInput}
+                  size="small"
+                  fullWidth
+                />
 
-                <div className="w-[col]">
-                  <TextField
-                    type="email"
-                    label="Email"
-                    variant="outlined"
-                    size="small"
-                    className="w-full"
-                    name="email"
-                    value={formFields.email}
-                    disabled={isLoading}
-                    onChange={onchangeInput}
-                  />
-                </div>
+                <TextField
+                  label="Email"
+                  value={formFields.email}
+                  disabled
+                  size="small"
+                  fullWidth
+                />
 
-                <div className="col">
-                  <TextField label="Phone Number" variant="outlined" size="small" className="w-full" name="mobile" value={formFields.mobile} onChange={onchangeInput} />
-               
-                </div>
+                <TextField
+                  label="Phone Number"
+                  name="mobile"
+                  value={formFields.mobile}
+                  onChange={onchangeInput}
+                  size="small"
+                  fullWidth
+                />
               </div>
 
-              
-
-              <br />
-
-              <div className="flex items-center gap-4">
+              <div className="mt-6">
                 <Button
-                  className="!bg-orange-600 !text-white hover:!bg-black w-[150px] btn"
                   type="submit"
-                  disabled={!valideValue}
+                  className="!bg-orange-600 !text-white hover:!bg-black"
+                  disabled={isLoading}
                 >
                   {isLoading ? (
-                    <CircularProgress color="inherit" />
+                    <CircularProgress size={20} color="inherit" />
                   ) : (
                     "Update Profile"
                   )}
@@ -219,72 +204,54 @@ const history =useNavigate();
             </form>
           </div>
 
+          {/* CHANGE PASSWORD */}
           <Collapse isOpened={isChangePasswordFormShow}>
             <div className="card bg-white p-5 shadow-md rounded-md">
-              <div className="flex items-center pb-3">
-                <h2 className="text-[20px] font-[600] pb-0">Change Password</h2>
-              </div>
-              <hr />
+              <h2 className="text-[20px] font-[600] mb-4">
+                Change Password
+              </h2>
 
-              <form className="!mt-8" onSubmit={handleSubmitChangePassword}>
+              <form onSubmit={handleSubmitChangePassword}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  
-                   
-              <div className="col">
-  <TextField
-    type="password"
-    label="Old Password"
-    variant="outlined"
-    size="small"
-    className="w-full"
-    name="oldPassword"
-    value={changePassword.oldPassword}
-    disabled={isLoading2}
-    onChange={onchangeInput}
-  />
-</div>
-                 
+                  <TextField
+                    label="Old Password"
+                    type="password"
+                    name="oldPassword"
+                    value={changePassword.oldPassword}
+                    onChange={onchangeInput}
+                    size="small"
+                    fullWidth
+                  />
 
-                  <div className="col">
-                    <TextField
-                      type="password"
-                      label="New Password"
-                      variant="outlined"
-                      size="small"
-                      className="w-full"
-                      name="newPassword"
-                      value={changePassword.newPassword}
-                      disabled={isLoading2}
-                      onChange={onchangeInput}
-                    />
-                  </div>
-                    <div className="col">
-                    <TextField
-                      type="password"
-                      label="Confirm Password"
-                      variant="outlined"
-                      size="small"
-                      className="w-full"
-                      name="confirmPassword"
-                      value={changePassword.confirmPassword}
-                      disabled={isLoading2}
-                      onChange={onchangeInput}
-                    />
-                  </div>
+                  <TextField
+                    label="New Password"
+                    type="password"
+                    name="newPassword"
+                    value={changePassword.newPassword}
+                    onChange={onchangeInput}
+                    size="small"
+                    fullWidth
+                  />
+
+                  <TextField
+                    label="Confirm Password"
+                    type="password"
+                    name="confirmPassword"
+                    value={changePassword.confirmPassword}
+                    onChange={onchangeInput}
+                    size="small"
+                    fullWidth
+                  />
                 </div>
 
-               
-
-                <br />
-
-                <div className="flex items-center gap-4">
+                <div className="mt-6">
                   <Button
-                    className="!bg-orange-600 !text-white hover:!bg-black w-[200px] btn"
                     type="submit"
-                    
+                    className="!bg-orange-600 !text-white hover:!bg-black"
+                    disabled={isLoading2}
                   >
                     {isLoading2 ? (
-                      <CircularProgress color="inherit" />
+                      <CircularProgress size={20} color="inherit" />
                     ) : (
                       "Change Password"
                     )}
