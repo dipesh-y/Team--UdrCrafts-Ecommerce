@@ -35,6 +35,8 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLogin, setIsLogin] = useState(false);
   const [userData, setUserData] = useState(null);
+   const [address, setAddress] = useState([]);
+
  const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
     model : "",
@@ -409,8 +411,9 @@ function createData(
     productRows,
     alertBox,
     userData,
-    setUserData
-
+    setUserData,
+    setAddress,
+    address
   };
 
 /*useEffect(() => {

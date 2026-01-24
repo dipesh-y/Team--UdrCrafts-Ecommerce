@@ -20,13 +20,33 @@ const AddAddress = () => {
         country: "",
         mobile: "",
         status: "",
-        userId: context?.userData?._id
+        // userId: context?.userData?._id
     });
 
     const [phone, setPhone] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState(false);
-    const handleChangeStatus = (event) => {
+    // useEffect(()=>{
+    //     setFormFields((prevState)=>({
+    //         ...prevState,
+    //         userId: context?.userData?._id
+    //     }))
+          
+      
+
+    // },[context?.userData]);
+
+    //  useEffect(()=>{
+    //      fetchDataFromApi('/api/address/get?${FormFields.userId}').then((res)=>{
+    //         console.log(res)
+    //     })
+    //  },[])
+    
+
+   
+
+
+      const handleChangeStatus = (event) => {
         const value = event.target.value;
         setStatus(value);
         setFormFields(prev => ({ ...prev, status: value }));
@@ -42,6 +62,29 @@ const AddAddress = () => {
         e.preventDefault();
 
         console.log("FORM DATA:", formFields);
+           
+        postData('/api/address/add',formFields,{withCredentials:true}).then((res)=>{
+            console.log(res)
+            if(res?.error !==true){
+                setIsLoading(false);
+                context.alertBox("Success", res?.data?.message);
+
+                context?.setIsOpenFullScreenPanel({
+                    open:false
+                })
+                   fetchDataFromApi(
+      `/api/address/get?userId=${context.userData._id}`
+    ).then((res) => {
+      context?.setAddress(res.data);
+    })
+      
+               
+            } else{
+                context.alertBox("error",res?.data?.message);
+                setIsLoading(false);
+            }
+        })
+
         console.log("PHONE:", phone);
         console.log("STATUS:", status);
         console.log("USER:", userData);
@@ -172,7 +215,7 @@ const AddAddress = () => {
                                     setFormFields(prev => ({ ...prev, mobile: value }));
                                 }}
 
-                                disabled={isLoading}
+                                disabled={isLoading===true ? true : false}
                             />
                         </div>
 

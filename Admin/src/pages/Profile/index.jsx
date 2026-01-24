@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MyContext from "../../context/MyContext";
@@ -13,6 +14,16 @@ import {
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 import { Collapse } from "react-collapse";
+import Radio from '@mui/material/Radio';
+
+
+
+const fetchDataFromApi = async (url, options = {}) => {
+  const res = await fetch(url, options);
+  return res.json();
+};
+
+const label ={inputProps: {"arial-label": "Check Box demo" }};
 
 const Profile = () => {
   const { userData, setUserData, openAlertBox, setIsOpenFullScreenPanel } = useContext(MyContext);
@@ -20,6 +31,9 @@ const Profile = () => {
 
   /* ------------------ States ------------------ */
   const [userId, setUserId] = useState("");
+  const [address, setAddress] = useState([]);
+
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -46,31 +60,96 @@ const Profile = () => {
     newPassword: "",
     confirmPassword: "",
   });
+ const context =useContext(MyContext);
+ const history = useNavigate();
+  const[selectedValue, setSelectedValue] =useState("");
+
+  const handleChange = (event)=>{
+    
+    setSelectedValue(event.target.value);
+    // if(event.target.checked===true){
+    //   editData('/api/address/selectAddress/${event.target.value}',{selected:true})
+    // }
+    // else{
+    //       editData('/api/address/selectAddress/${event.target.value}',{selected:false})
+    // }
+  
+  };
 
   /* ------------------ Auth Guard ------------------ */
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (!token) navigate("/login");
-  }, [navigate]);
+    if (token===null) history("/login");
+  },[context?.islogin])
+
 
   /* ------------------ Load User ------------------ */
-  useEffect(() => {
-    if (!userData?._id) return;
+  
+  // useEffect(()=>{
+  //   if(context?.userData?._id !=="" && context?.userData?._id !== undefined){
+  //     fetchDataFromApi('/api/address/get?userId=${context?.userData?._id}').then((res)=>{
+  //       setAddress(res.data)
+  //       setSelectedValue(res?.data?.address_line1)
+  //       console.log(res?.data)
+  //     })
+  //   }
+  //     setUserId(userData._id);
 
+  // setFormFields({
+  //   name: userData.name || "",
+  //   email: userData.email || "",
+  //   mobile: userData.mobile ? `+${userData.mobile}` : "",
+  // })
+  // const ph = '"${context?.userData?.mobile}"'
+  // setPhone(ph)
+
+  // setChangePassword({
+  //   email:context?.user?.email
+  // })
+
+  // },[context?.userData])
+//-----------------Load user-----------------//
+useEffect(() => {
+  if (context?.userData?._id) {
+    fetchDataFromApi(
+      `/api/address/get?userId=${context.userData._id}`
+    ).then((res) => {
+      setAddress(res?.data || []);
+      context?.setAddress(res.data);
+
+      if (res?.data?.length > 0) {
+        setSelectedValue(res.data[0].address_line1);
+      }
+    })
+        
+  }
+
+  if (userData?._id) {
     setUserId(userData._id);
+  }
 
-    setFormFields({
-      name: userData.name || "",
-      email: userData.email || "",
-      mobile: userData.mobile ? `+${userData.mobile}` : "",
-    });
+  setFormFields({
+    name: userData?.name || "",
+    email: userData?.email || "",
+    mobile: userData?.mobile ? `+${userData.mobile}` : "",
+  });
 
-    setPhone(userData.mobile ? `+${userData.mobile}` : "");
+  setPhone(
+    context?.userData?.mobile
+      ? `+${context.userData.mobile}`
+      : ""
+  );
 
-    if (userData.avatar) {
-      setPreviews([userData.avatar]);
-    }
-  }, [userData]);
+  setChangePassword({
+    email: context?.user?.email,
+  });
+
+}, [context?.userData]);
+
+
+
+
+
 
   /* ------------------ Avatar Upload ------------------ */
   const onChangeFile = async (e) => {
@@ -331,7 +410,7 @@ const Profile = () => {
           <br />
           {!isChangePasswordFormShow && (
   <div
-    className="flex item-center justify-center p-5 border border-dashed
+    className="flex item-center justify-center p-5 rounded-md border border-dashed
     border-[rgba(0,0,0,0.2)] bg-[#f1faff] hover:bg-[#e7f3f9] cursor-pointer"
     onClick={() =>
       setIsOpenFullScreenPanel({
@@ -342,7 +421,78 @@ const Profile = () => {
   >
     <span className="text-[14px] font-[500]">Add Address</span>
   </div>
-)}
+    
+    
+)}  
+    <div className="flex gap-2 fle-col mt-4">
+      {
+        address?.length >0 && address?.map((address,index)=>{
+          return(
+            <>
+            <label className='border border-dashed
+    border-[rgba(0,0,0,0.2)]  addressBox w-full flex items-center justify-center bg-[#f1f1f1] p-3 rounded-md cursor-pointer'>
+      <Radio {...label}name="address" checked={selectedValue===(address?._id)
+      } value={address?._id
+      
+      } onChange={handleChange}/>
+      <span className="text-[12px]">{
+      address?.address_line1 + " "+
+      address?.city + " "+
+       address?.country + " "+
+       address?.state + " "+
+      address?.pincode
+      }
+      </span>
+      
+    </label>
+            </>
+          )
+        })
+      }
+
+    </div>
+    
+     {/* <div className="flex gap-2 flex-col mt-4">
+  {
+    address?.length > 0 &&
+    address.map((address, index) => {
+      return (
+        <label
+          key={index}
+          className='border border-dashed
+          border-[rgba(0,0,0,0.2)] addressBox w-full flex items-center
+          justify-start bg-[#f1f1f1] p-3 rounded-md cursor-pointer'
+        >
+
+          <Radio
+            name="address"
+            checked={selectedValue === address?.address_line1}  // ✅ MATCH
+            value={address?.address_line1}                     // ✅ MATCH
+            onChange={(e) => {
+              setSelectedValue(e.target.value);                // ✅ INLINE HANDLE
+            }}
+          />
+
+          <span className="text-[12px] ml-2">
+            {address?.address_line1 + " " +
+             address?.city + " " +
+             address?.state + " " +
+             address?.country + " " +
+             address?.pincode}
+          </span>
+
+        </label>
+      )
+    })
+  }
+</div> */}
+
+
+    
+  
+
+
+      
 
           <br />
           <div className="mt-6">

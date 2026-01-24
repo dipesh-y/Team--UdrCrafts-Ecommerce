@@ -718,7 +718,8 @@ export async function userDetails(request, response) {
     try {
         const userId = request.userId
         // console.log(userId)
-        const user = await UserModel.findById(userId).select('-password -refresh_token')
+        const user = await UserModel.findById(userId).select('-password -refresh_token').
+        populate('address_details')
         return response.json({
             message: 'user details',
             data: user,
