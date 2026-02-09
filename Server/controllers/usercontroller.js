@@ -186,13 +186,15 @@ export async function loginUserController(req, res) {
         })
 
 
+        const isProduction = process.env.NODE_ENV === 'production';
         const cookiesOption = {
             httpOnly: true,
-            secure: true,
-            sameSite: "None"
+            secure: isProduction,
+            sameSite: isProduction ? "None" : "Lax",
+            maxAge: 5 * 60 * 60 * 1000 // 5 hours
         }
         res.cookie('accessToken', accessToken, cookiesOption);
-        res.cookie('refreshToken', refreshToken, cookiesOption);
+        res.cookie('refreshToken', refreshToken, { ...cookiesOption, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 
 
         return res.json({
@@ -226,10 +228,11 @@ export async function logoutController(req, res) {
     try {
         const userid = req.userId;  //middleware
 
+        const isProduction = process.env.NODE_ENV === 'production';
         const cookiesOption = {
             httpOnly: true,
-            secure: true,
-            sameSite: "None"
+            secure: isProduction,
+            sameSite: isProduction ? "None" : "Lax"
         }
 
         res.clearCookie('accessToken', cookiesOption);
@@ -688,10 +691,12 @@ export async function refreshToken(request, response) {
         const userId = verifyToken?._id
         const newAccessToken = await generatedAccessToken(userId)
 
+        const isProduction = process.env.NODE_ENV === 'production';
         const cookiesOption = {
             httpOnly: true,
-            secure: true,
-            sameSite: "None"
+            secure: isProduction,
+            sameSite: isProduction ? "None" : "Lax",
+            maxAge: 5 * 60 * 60 * 1000 // 5 hours
         }
 
         response.cookie('accessToken', newAccessToken, cookiesOption)

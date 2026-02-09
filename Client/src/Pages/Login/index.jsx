@@ -75,8 +75,10 @@ const Login = () => {
         }
 
         setUserData({
+          _id: res?.data?.user?._id,  // ⬅️ CRITICAL: Include user ID
           name: res?.data?.user?.name,
           email: res?.data?.user?.email,
+          avatar: res?.data?.user?.avatar || "",
         });
 
         navigate("/");

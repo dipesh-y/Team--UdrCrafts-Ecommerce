@@ -34,21 +34,42 @@ const Address = () => {
   });
 
   /* ================= FETCH ADDRESS ================= */
- useEffect(() => {
-  const userId = context?.userData?._id;
-
-  if (!userId) return; // ⛔ wait until userId exists
-
-  fetchDataFromApi(`/api/address/get`)
-    .then((res) => {
-      const list = res?.data || [];
-      setAddress(list);
-
-      if (list.length > 0) {
-        setSelectedValue(list[0]._id);
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.log("No token found, skipping address fetch");
+        return;
       }
-    });
-}, [context?.userData?._id]); // ✅ dependency MUST be userId
+
+      try {
+        const response = await fetch(`${context?.API_URL || 'http://localhost:8000'}/api/address/get`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+        
+        if (data?.success) {
+          const list = data?.data || [];
+          setAddress(list);
+          if (list.length > 0) {
+            setSelectedValue(list[0]._id);
+          }
+        } else {
+          console.log("Address fetch failed:", data?.message);
+        }
+      } catch (err) {
+        console.error("Error fetching addresses:", err);
+      }
+    };
+
+    fetchAddresses();
+  }, []); // Run once on mount
 
 
   /* ================= FORM HANDLERS ================= */
@@ -74,7 +95,6 @@ const Address = () => {
       const payload = {
         ...formFields,
         mobile: phone,
-        
         userId: context?.userData?._id,
       };
 
@@ -84,17 +104,31 @@ const Address = () => {
         context?.openAlertBox?.("success", "Address added successfully");
         setisOpenModel(false);
 
-        // 🔄 Refresh list
-        const response = await fetchDataFromApi(
-          `/api/address/get?userId=${context?.userData?._id}`
-        );
-
-        const list = response?.data || [];
-        setAddress(list);
-
-        if (list.length > 0) {
-          setSelectedValue(list[0]._id);
+        // Add the new address to local state immediately
+        const newAddress = res?.data;
+        if (newAddress) {
+          setAddress(prev => [...prev, newAddress]);
+          
+          // Also update userData context so it persists on navigation
+          if (context?.setUserData && context?.userData) {
+            context.setUserData({
+              ...context.userData,
+              address_details: [...(context.userData.address_details || []), newAddress]
+            });
+          }
         }
+
+        // Reset form
+        setFormFields({
+          address_line1: "",
+          city: "",
+          state: "",
+          pincode: "",
+          country: "",
+          mobile: "",
+          status: "false",
+        });
+        setPhone("");
       } else {
         context?.openAlertBox?.("error", res?.message || "Error adding address");
       }

@@ -58,20 +58,27 @@ function App() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        // Get token from localStorage (set during login)
+        const token = localStorage.getItem('accessToken');
+        
         const res = await axios.get(
           `${API_URL}/api/user/user-details`,
-          { withCredentials: true }
+          { 
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          }
         );
-
 
         if (res.data.success) {
           setUserData(res.data.data);
           setIsLogin(true);
-          //window.location.href = "/login";
         }
       } catch (err) {
         setUserData(null);
         setIsLogin(false);
+        // Clear invalid tokens
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       }
     };
 

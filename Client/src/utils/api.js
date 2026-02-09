@@ -59,6 +59,16 @@ const apiClient = axios.create({
     withCredentials: true
 });
 
+// 🔐 Add Authorization header from localStorage if available
+// This is needed because cookies may not work in cross-origin development
+apiClient.interceptors.request.use((config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 const normalizeError = (error) => {
     if (!error) {
         return { message: 'Unknown error', error: true, success: false };
