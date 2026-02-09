@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState , useEffect} from "react";
 
 export const MyContext = createContext(null);
 
@@ -11,6 +11,27 @@ const MyContextProvider = ({ children }) => {
   const [isLogin, setIsLogin] = useState(false);
   const [userData, setUserData] = useState(null);
 
+ useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      const parsedUser = JSON.parse(user);
+      setUserData(parsedUser);
+      setIsLogin(true);
+    }
+  }, []);
+
+  // 2. Custom Login function to save to localStorage
+  const handleLogin = (data) => {
+    localStorage.setItem("user", JSON.stringify(data)); // Save to disk
+    setUserData(data);
+    setIsLogin(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user"); // Clear disk
+    setUserData(null);
+    setIsLogin(false);
+  }; 
   const openAlertBox = (status, msg) => {
     setAlert({ open: true, type: status, message: msg });
     setTimeout(() => {

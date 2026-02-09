@@ -7,6 +7,8 @@ import { Collapse } from "react-collapse";
 import { MyContext } from "../../context/MyContext";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 
 const MyAccount = () => {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ const MyAccount = () => {
   const [userId, setUserId] = useState("");
   const [isChangePasswordFormShow, setIsChangePasswordFormShow] =
     useState(false);
+      const [phone, setPhone] = useState("");
 
   const [formFields, setFormFields] = useState({
     name: "",
@@ -47,6 +50,7 @@ const MyAccount = () => {
       email: userData.email || "",
       mobile: userData.mobile || "",
     });
+    setPhone(userData.mobile ? `+${userData.mobile}` : "");
   }, [userData]);
 
   /* ------------------ INPUT HANDLER ------------------ */
@@ -178,13 +182,14 @@ const MyAccount = () => {
                   fullWidth
                 />
 
-                <TextField
-                  label="Phone Number"
-                  name="mobile"
-                  value={formFields.mobile}
-                  onChange={onchangeInput}
-                  size="small"
-                  fullWidth
+               <PhoneInput
+                  defaultCountry="in"
+                  value={phone}
+                  onChange={(value) => {
+                    setPhone(value);
+                    setFormFields((prev) => ({ ...prev, mobile: value }));
+                  }}
+                  disabled={isLoading}
                 />
               </div>
 
@@ -203,6 +208,10 @@ const MyAccount = () => {
               </div>
             </form>
           </div>
+
+
+
+          
 
           {/* CHANGE PASSWORD */}
           <Collapse isOpened={isChangePasswordFormShow}>

@@ -6,13 +6,11 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import connectDB from './config/connectDb.js';
 import userRouter from './route/useroute.js'
-import bcrypt from "bcrypt"
-import nodemailer from "nodemailer";
 import categoryRouter from './route/categoryroute.js';
 import productRouter from './route/productroute.js';
 import cartRouter from './route/cartroute.js';
 import myListRouter from './route/myList.route.js'
-import { addAddressController } from './controllers/addresscontroller.js';
+import addressRouter from './route/addressroute.js';
 
 dotenv.config();
 
@@ -57,7 +55,7 @@ app.use('/api/category', categoryRouter)
 app.use('/api/product', productRouter)
 app.use('/api/cart', cartRouter);
 app.use('/api/myList', myListRouter);
-app.use('/api/address', addAddressController)
+app.use('/api/address', addressRouter)
 
 
 // Connect DB and start server

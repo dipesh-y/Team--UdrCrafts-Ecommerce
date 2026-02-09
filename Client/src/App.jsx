@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Header from "./components/Header/Index";
 import Footer from "./components/Footer";
+import Address from "./Pages/MyAccount/address"
 
 import Home from "./Pages/Home";
 import ProductListing from "./Pages/ProductListing";
@@ -66,7 +67,7 @@ function App() {
         if (res.data.success) {
           setUserData(res.data.data);
           setIsLogin(true);
-          window.location.href = "/login";
+          //window.location.href = "/login";
         }
       } catch (err) {
         setUserData(null);
@@ -111,6 +112,7 @@ function App() {
             <Route path="/my-account" element={<MyAccount />} />
             <Route path="/my-list" element={<MyList />} />
             <Route path="/my-orders" element={<Orders />} />
+            <Route path="/address" element={<Address/>} />
           </Routes>
 
           <Footer />
@@ -151,3 +153,4 @@ function App() {
 }
 
 export default App;
+export { MyContext };

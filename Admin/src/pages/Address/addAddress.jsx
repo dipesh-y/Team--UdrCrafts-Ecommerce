@@ -10,7 +10,8 @@ import MenuItem from "@mui/material/MenuItem";
 
 const AddAddress = () => {
     const context = useContext(MyContext);
-    const { userData, setIsOpenFullScreenPanel, openAlertBox } = context;
+    const {userData} = context;
+    const{ setIsOpenFullScreenPanel, openAlertBox } = context;
 
     const [formFields, setFormFields] = useState({
         address_line1: "",

@@ -53,3 +53,42 @@ export const uploadImage = async (URL, updateData, params = {}) => {
     throw error;
   }
 };
+
+const apiClient = axios.create({
+    baseURL: apiUrl,
+    withCredentials: true
+});
+
+const normalizeError = (error) => {
+    if (!error) {
+        return { message: 'Unknown error', error: true, success: false };
+    }
+
+    if (error?.error !== undefined) {
+        return error;
+    }
+
+    if (error?.message) {
+        return {
+            message: error.message,
+            error: true,
+            success: false
+        };
+    }
+
+    return {
+        message: 'Request failed',
+        error: true,
+        success: false
+    };
+};
+
+export const fetchDataFromApi = async (url, config = {}) => {
+    try {
+        const { data } = await apiClient.get(url, config);
+        return data;
+    } catch (error) {
+        console.log(error);
+        return normalizeError(error);
+    }
+};

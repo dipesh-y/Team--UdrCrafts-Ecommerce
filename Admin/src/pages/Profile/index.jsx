@@ -312,8 +312,10 @@ const Profile = () => {
               type="email"
               name="email"
               value={formFields.email}
+              onChange={onchangeInput}
               className="border p-2 rounded bg-gray-100"
-              disabled
+              placeholder="Email"
+              disabled={isLoading}
             />
           </div>
 

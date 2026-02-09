@@ -7,6 +7,7 @@ import { FaCloudUploadAlt, FaRegUser } from "react-icons/fa";
 import { IoMdHeartEmpty } from "react-icons/io";
 import { IoIosLogOut } from "react-icons/io";
 import { IoBagCheckOutline } from "react-icons/io5";
+import { LuMapPin } from "react-icons/lu";
 
 import { MyContext } from "../../context/MyContext";
 import { uploadImage } from "../../utils/api";
@@ -22,7 +23,7 @@ const AccountSidebar = () => {
     if (context?.userData?.avatar) {
       setPreviews([context.userData.avatar]);
     }
-  }, [context?.userData]);
+  }, [context?.userData?.avatar]);
 
   const onChangeFile = async (e) => {
     const file = e.target.files[0];
@@ -59,18 +60,12 @@ const AccountSidebar = () => {
       <div className="w-full p-5 flex items-center justify-center flex-col">
         <div className="w-[110px] h-[110px] rounded-full overflow-hidden mb-4 relative group flex items-center justify-center bg-gray-200">
           {uploading ? (
-            <CircularProgress />
-          ) : previews.length > 0 ? (
-            <img
-              src={previews[0]}
-              className="w-full h-full object-cover"
-              alt="avatar"
-            />
+            <CircularProgress size={40} />
           ) : (
             <img
-              src="/user.png"
+              src={previews[0] || "/user.png"}
               className="w-full h-full object-cover"
-              alt="user"
+              alt="avatar"
             />
           )}
 
@@ -86,6 +81,7 @@ const AccountSidebar = () => {
           </div>
         </div>
 
+
         <h3>{context?.userData?.name}</h3>
         <h6 className="text-[13px] font-[500]">
           {context?.userData?.email}
@@ -97,6 +93,13 @@ const AccountSidebar = () => {
           <NavLink to="/my-account">
             <Button className="w-full !justify-start gap-2">
               <FaRegUser /> My Profile
+            </Button>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/address">
+            <Button className="w-full !justify-start gap-2">
+              <LuMapPin /> Address
             </Button>
           </NavLink>
         </li>
