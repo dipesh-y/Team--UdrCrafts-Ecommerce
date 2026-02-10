@@ -10,7 +10,8 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import "react-international-phone/style.css";
-import { postData, fetchDataFromApi } from "../../utils/api.js";
+import { postData, fetchDataFromApi, deleteData } from "../../utils/api.js";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 const Address = () => {
   const context = useContext(MyContext);
@@ -78,6 +79,24 @@ const Address = () => {
     setFormFields((prev) => ({ ...prev, [name]: value }));
   };
 
+
+
+  /* ================= Remove Adddress ================= */
+
+  const removeAddress = (id) => {
+    deleteData(`/api/address/${id}`)
+      .then(res => {
+        if (res?.success) {
+          setAddress(prev => prev.filter(item => item._id !== id));
+          context?.openAlertBox?.("success", "Address removed successfully");
+        } else {
+          context?.openAlertBox?.("error", res?.message || "Failed to remove address");
+        }
+      })
+      .catch(err => {
+        context?.openAlertBox?.("error", "Failed to remove address");
+      });
+  }
   
 
   /* ================= SUBMIT ADDRESS ================= */
@@ -171,9 +190,10 @@ const Address = () => {
                 {address.map((item) => (
                   <div
                     key={item._id}
-                    className="addressBox flex items-center gap-2 bg-[#f1f1f1] p-3 rounded-md border border-dashed cursor-pointer"
+                    className=" group relative addressBox flex items-center gap-2 bg-[#f1f1f1] p-3 rounded-md border border-dashed cursor-pointer"
                     onClick={() => setSelectedValue(item._id)}
                   >
+                    <label className="mr-auto">
                     <Radio
                       checked={selectedValue === item._id}
                       onChange={() => setSelectedValue(item._id)}
@@ -182,6 +202,11 @@ const Address = () => {
                     <span className="text-[12px]">
                       {item.address_line1}, {item.city}, {item.state},{" "}
                       {item.country} - {item.pincode}
+                    </span>
+                    </label>
+
+                    <span onClick={()=>removeAddress(item?._id)} className=" hidden group-hover:flex items-center justify-center w-[30px] h-[30px] rounded-full bg-gray-500 text-white ml-auto z-50">
+                        <FaRegTrashAlt />
                     </span>
                   </div>
                 ))}
@@ -196,6 +221,7 @@ const Address = () => {
         <DialogTitle>Add Address</DialogTitle>
 
         <form className="p-8 py-3" onSubmit={handleSubmit}>
+          <div className="flex gap-4 mb-4">
           <TextField
             fullWidth
             label="Address Line 1"
@@ -203,8 +229,9 @@ const Address = () => {
             name="address_line1"
             value={formFields.address_line1}
             onChange={onChange}
-            className="mb-4 gap-4"
+            // className="mb-4 gap-4"
           />
+          </div>
 
           <div className="flex gap-4 mb-4">
             <TextField

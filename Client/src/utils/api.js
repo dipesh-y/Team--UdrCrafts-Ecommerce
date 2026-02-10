@@ -6,8 +6,7 @@ const apiUrl = import.meta.env.VITE_API_URL; // e.g. http://localhost:8000
 // 🔹 POST (JSON)
 export const postData = async (URL, data) => {
   try {
-    const response = await axios.post(apiUrl + URL, data, {
-      withCredentials: true,
+    const response = await apiClient.post(URL, data, {
       headers: { "Content-Type": "application/json" },
     });
     return response.data;
@@ -17,15 +16,14 @@ export const postData = async (URL, data) => {
   }
 };
 
+
 // 🔹 PUT (JSON data)
+
 export const editData = async (URL, updateData, params = {}) => {
   try {
-    const response = await axios.put(apiUrl + URL, updateData, {
+    const response = await apiClient.put(URL, updateData, {
       params,
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
     return response.data;
   } catch (error) {
@@ -34,25 +32,22 @@ export const editData = async (URL, updateData, params = {}) => {
   }
 };
 
+
 // 🔹 PUT (Image / multipart)
+
 export const uploadImage = async (URL, updateData, params = {}) => {
   try {
-    const response = await axios.put(apiUrl + URL, updateData, {
+    const response = await apiClient.put(URL, updateData, {
       params,
-      withCredentials: true,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
   } catch (error) {
-    console.error(
-      "uploadImage error:",
-      error.response?.data || error.message
-    );
+    console.error("uploadImage error:", error.response?.data || error.message);
     throw error;
   }
 };
+
 
 const apiClient = axios.create({
     baseURL: apiUrl,
@@ -101,4 +96,21 @@ export const fetchDataFromApi = async (url, config = {}) => {
         console.log(error);
         return normalizeError(error);
     }
+};
+
+
+
+// 🔹 DELETE (JSON data)
+
+export const deleteData = async (URL, updateData) => {
+  try {
+    const response = await apiClient.delete(URL, {
+      data: updateData,   // ✅ body goes here
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("deleteData error:", error.response?.data || error.message);
+    throw error;
+  }
 };

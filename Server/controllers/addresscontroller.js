@@ -137,3 +137,34 @@ export async function getAddressController(request, response) {
       })
     }
  }    
+
+
+
+ export const deleteAddressController = async ( request,response)=>{
+    try {
+    const { id } = request.params;
+
+    const address = await AddressModel.findByIdAndDelete(id);
+
+    if (!address) {
+      return response.status(404).json({
+        success: false,
+        message: "Address not found",
+      });
+    }
+
+    response.json({
+      success: true,
+      message: "Address deleted successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error: true,
+    });
+  }
+ }
+
+ 
