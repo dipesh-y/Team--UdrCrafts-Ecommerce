@@ -53,3 +53,67 @@ export const uploadImage = async (URL, updateData, params = {}) => {
     throw error;
   }
 };
+
+
+
+// export const uploadImages = async (url, formData) => {
+//   const params = {
+//     headers: {
+//       'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Include your API key in the Authorization header
+//       'Content-Type': 'multipart/form-data', // Adjust the content type as needed
+//     },
+//   };
+
+//   var response;
+ 
+//   await axios.post(apiUrl + url, formData, params).then((res) => {
+//     response = res;
+//   });
+
+//   return response;
+// };
+
+export const uploadImages = async (url, formData) => {
+  // CHANGED 1: Added try-catch block to match your other functions and properly handle server errors
+  try {
+    // CHANGED 2: Renamed 'params' to 'config' since Axios uses the 3rd argument for configuration, not just URL params
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, 
+        'Content-Type': 'multipart/form-data', 
+      },
+    };
+
+    // CHANGED 3: Removed the mixed async/await and .then() syntax into a clean, single await statement
+    const response = await axios.post(apiUrl + url, formData, config);
+    return response;
+  } catch (error) {
+    // CHANGED 4: Log the error and throw it so your UploadBox component knows the upload failed
+    console.error("uploadImages error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
+export const deleteImages = async (url) => {
+  try{
+    const params = {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, 
+      // Include your API key in the Authorization header
+
+      'Content-Type': 'multipart/form-data', 
+      // Adjust the content type as needed
+
+      
+    },
+  };
+
+  const response = await axios.delete(apiUrl + url, params);
+  return response;
+  }
+  catch(error){
+    console.log("Delete Error:", error.response?.data || error.message);
+    throw error;
+  }
+};

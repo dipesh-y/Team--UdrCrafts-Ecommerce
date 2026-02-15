@@ -369,21 +369,6 @@ export async function removeImageFromCloudinary(request, response) {
 
         const imageName = image.split(".")[0];
 
-        // if (imageName) {
-        //   const res = await cloudinary.uploader.destroy(
-        //     imageName,
-        //     (error, result) => {
-        //         // console.log(error,res)
-        //     }
-        //   );
-
-        //   if (res) {
-        //     user.avatar = "";
-        //     await user.save();
-        //     response.status(200).send(res);
-        //   }
-        // }
-
         if (imageName) {
             const res = await cloudinary.uploader.destroy(imageName);
 

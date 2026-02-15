@@ -11,12 +11,13 @@ import fs from "fs";
 //   secure: true,
 // });
 
-var imagesArr = [];
+// var imagesArr = [];
 
 export async function uploadImages(request,response){
   try{
-    imagesArr =[];
+    let imagesArr =[];
     const image = request.files;
+
 
     const options = {
       use_filename : true,
@@ -24,14 +25,13 @@ export async function uploadImages(request,response){
       overwrite: false,
     };
     for (let i =0; i < image?.length; i++){
-            const img = await cloudinary.uploader.upload(
+            const result = await cloudinary.uploader.upload(
                      image[i].path,
-                     options,
-                     function (error, result) {
-                         imagesArr.push(result.secure_url);
-                         fs.unlinkSync(`uploads/${request.files[i].filename}`);
-                     }
-                 );  
+                     options
+            );
+            imagesArr.push(result.secure_url);
+            fs.unlinkSync(`uploads/${request.files[i].filename}`);
+      
     }
 
     return response.status(200).json({
@@ -40,7 +40,7 @@ export async function uploadImages(request,response){
   }
   catch (error){
       return response.status(500).json({
-      message: error.message | error,
+      message: error.message || error,
       error: true,
       success: false,
     });
@@ -257,3 +257,32 @@ export async function updateCategory(request, response) {
     });
   }
 }
+
+export async function removeImageFromCloudinary(request, response) {
+
+    const imgUrl = request.query.img;
+
+    const urlArr = imgUrl.split("/");
+    const image = urlArr[urlArr.length - 1];
+
+    const imageName = image.split(".")[0];
+
+    if (imageName) {
+        const res = await cloudinary.uploader.destroy(
+            imageName,
+            (error, result) => {
+                // console.log(error, res)
+            }
+        );
+
+        if (res) {
+        return response.status(200).json({
+            error: false,
+            success: true,
+            message: "image deleted successfully"
+        });
+    }
+    }
+}
+
+
