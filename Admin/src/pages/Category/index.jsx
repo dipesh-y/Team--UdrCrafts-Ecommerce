@@ -1,5 +1,5 @@
 import { Button } from '@mui/material'
-import React, { useState, useMemo, useContext } from 'react'
+import React, { useState, useMemo, useContext, useEffect } from 'react'
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -20,12 +20,11 @@ import { IoEyeOutline } from "react-icons/io5";
 import { AiTwotoneDelete } from "react-icons/ai";
 import MyContext from '../../context/MyContext';
 import SearchBox from '../../components/SearchBox';
+import { deleteData, fetchDataFromApi } from '../../utils/api';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import "react-lazy-load-image-component/src/effects/blur.css"
 
-const columns = [
-  { id: "product", label: "IMAGE", minWidth: 220 },
-  { id: "category", label: "CATEGORY NAME", minWidth: 150 },
-  { id: "action", label: "ACTION", minWidth: 150 },
-];
+
 
 function createData(id, product, category, rating) {
 
@@ -84,6 +83,26 @@ const CategoryList = () => {
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const context = useContext(MyContext);
+
+  const [catData, setCatData] = useState([]);
+
+  //useEffect fetch the categories
+  useEffect(() => {
+    
+      fetchDataFromApi("/api/category").then((res) => {
+        // console.log(res?.data?.categories);//array of category data - to remove
+          setCatData(res?.data?.categories);
+      });
+    
+  }, [context?.isOpenFullScreenPanel.open]);
+
+  // Define your columns to match the API data keys
+  const columns = [
+    { id: 'image', label: 'Image', minWidth: 100 },
+    { id: 'name', label: 'Category Name', minWidth: 170 },
+    { id: 'action', label: 'Action', minWidth: 100 },
+  ];
 
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
@@ -91,7 +110,15 @@ const CategoryList = () => {
     setPage(0);
   };
 
-  const context = useContext(MyContext);
+  const deleteCat=(id)=>{
+     
+    deleteData(`/api/category/${id}`).then((res)=>{
+      fetchDataFromApi("/api/category").then((res) => {
+        // console.log(res?.data?.categories);//array of category data - to remove
+          setCatData(res?.data?.categories);
+      });
+    })
+  }
 
   return (
     <>
@@ -154,29 +181,77 @@ const CategoryList = () => {
                 </TableRow>
               </TableHead>
 
-              <TableBody>
-                {rows
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <TableRow hover key={row.id}>
-                      <TableCell padding="checkbox">
-                        <Checkbox color="primary" />
-                      </TableCell>
 
-                      {columns.map((column) => (
-                        <TableCell key={column.id}>
-                          {row[column.id]}
+              <TableBody>
+                {catData?.length !== 0 ? (
+                  catData
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((category, index) => (
+                      <TableRow hover key={category._id || index}>
+                        <TableCell padding="checkbox">
+                          <Checkbox color="primary" />
                         </TableCell>
-                      ))}
+
+                        {/* Column: Image */}
+                        <TableCell>
+                          <div className="w-[50px] h-[50px] overflow-hidden rounded-md border border-gray-200">
+                            <LazyLoadImage 
+                              src={category.image} 
+                              alt={category.name} 
+                              // className="w-full h-full object-cover" 
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                            />
+                          </div>
+                        </TableCell>
+
+                        {/* Column: Name */}
+                        <TableCell>
+                          <span className="font-medium text-gray-700">{category.name}</span>
+                        </TableCell>
+
+                        {/* Actions Cell - Re-adding View, Edit, and Delete */}
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <TooltipMUI title="Edit Category" placement="top">
+                              <Button className="!w-[35px] !h-[35px] bg-[#f1f1f1] !rounded-full hover:!bg-[#ccc]" onClick={() =>
+                                  context?.setIsOpenFullScreenPanel({
+                                    open: true,
+                                    model: "Edit Category",
+                                    id:category?._id
+                                    
+                                })}>
+                                <FaEdit className="text-[rgba(0,0,0,0.7)] text-[20px]" />
+                                
+                                
+                              </Button>
+                            </TooltipMUI>
+
+                            <TooltipMUI title="Delete" placement="top">
+                              <Button className="!w-[35px] !h-[35px] bg-[#f1f1f1] !rounded-full hover:!bg-[#ccc]" 
+                              onClick={()=>deleteCat(category?._id)} >
+                                <AiTwotoneDelete className="text-[rgba(0,0,0,0.7)] text-[25px]" />
+                              </Button>
+                            </TooltipMUI>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length + 1} align="center">
+                        Loading categories...
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
               </TableBody>
+
+
             </Table>
           </TableContainer>
 
           <TablePagination
             rowsPerPageOptions={[10, 25, 100]}
-            count={rows.length}
+            count={catData?.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

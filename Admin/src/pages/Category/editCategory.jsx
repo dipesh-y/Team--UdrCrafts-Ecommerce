@@ -1,16 +1,16 @@
-import React, {useState, useContext} from "react";
+import React, {useState, useContext, useEffect} from "react";
 import UploadBox from "../../components/UploadBox";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { IoClose } from "react-icons/io5";
 import { Button } from "@mui/material";
 import { FaCloudUploadAlt } from "react-icons/fa";
-import { deleteImages, postData } from "../../utils/api";
+import { deleteImages, editData, fetchDataFromApi, postData } from "../../utils/api";
 import MyContext from "../../context/MyContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
 
-const AddCategory = () => {
+const EditCategory = () => {
 
   //add formFields : name and image
   const [formFields, setFormFields] = useState({
@@ -22,6 +22,17 @@ const AddCategory = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const context = useContext(MyContext);
+
+
+  useEffect(()=>{
+    const id = context?.isOpenFullScreenPanel?.id;
+
+    fetchDataFromApi(`/api/category/${id}`, formFields).then((res)=>{
+        setFormFields(res?.data?.category);
+        setPreviews(res?.data?.category.image);
+    })
+  },[]);
+
   const onChangeInput=(e)=>{
     const{name, value} = e.target;
     setFormFields((prev)=>{
@@ -51,6 +62,7 @@ const AddCategory = () => {
   const removeImg = (image, index) => {
     var imageArr = [];
     imageArr = previews;
+    // console.log(`Delete image ${imageArr}`);//to remove
 
     deleteImages(`/api/user/deleteImage?img=${image}`).then((res) => {
       imageArr.splice(index, 1);
@@ -84,7 +96,7 @@ const AddCategory = () => {
     }
     // console.log(formFields);//to remove
 
-    postData("/api/category/create", formFields).then((res)=>{
+    editData(`/api/category/${context?.isOpenFullScreenPanel?.id}`, formFields).then((res)=>{
       // console.log(res)//to remove
       
       setTimeout(()=>{
@@ -92,7 +104,8 @@ const AddCategory = () => {
         //close window after category created
         context?.setIsOpenFullScreenPanel({
           open: false,
-          model: "Add New Category"
+          model: "",
+          id: ""
         }) 
         
       },500)
@@ -201,6 +214,7 @@ const AddCategory = () => {
                   : 'Publish and View'
               }
             </Button>
+            
           </div>
         </div>
       </form>
@@ -208,4 +222,4 @@ const AddCategory = () => {
   );
 };
 
-export default AddCategory;
+export default EditCategory;

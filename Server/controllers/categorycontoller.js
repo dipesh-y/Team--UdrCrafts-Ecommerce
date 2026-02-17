@@ -57,10 +57,10 @@ export async function createCategory(request, response) {
 
     const category = new CategoryModel({
       name: request.body.name,
-      image: request.body.imagesArr,
-      color: request.body.color,
-      parentCatName: request.body.parentCatName,
-      parentId: request.body.parentId || null,
+      image: request.body.image
+      // color: request.body.color,
+      // parentCatName: request.body.parentCatName,
+      // parentId: request.body.parentId || null,
     });
 
     const saved = await category.save();
@@ -72,8 +72,7 @@ export async function createCategory(request, response) {
       success: false,
     });
     }
-    imagesArr = [];
-
+    // image = []; - remove it
     return response.status(201).json({
       message: "Category created successfully",
       success: true,
@@ -163,6 +162,7 @@ export async function getSubCategoryCount(request, response) {
 
 export async function getCategoryById(request, response) {
   try {
+
     const category = await CategoryModel.findById(request.params.id);
 
     if (!category) {
@@ -190,6 +190,7 @@ export async function getCategoryById(request, response) {
 export async function deleteCategory(request, response) {
   try {
     const category = await CategoryModel.findById(request.params.id);
+    // console.log(category)
 
     if (!category) {
       return response.status(404).json({
@@ -200,7 +201,7 @@ export async function deleteCategory(request, response) {
     }
 
     if (category.image) {
-      const urlArr = category.image.split("/");
+      const urlArr = category.image[0].split("/"); //image -> image[0] {Took 2+ hours to me!!}
       const last = urlArr[urlArr.length - 1];
       const publicId = last.split(".")[0];
 

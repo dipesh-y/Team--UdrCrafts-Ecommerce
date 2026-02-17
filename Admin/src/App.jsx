@@ -1,4 +1,4 @@
-import React, { createContext, useState,useEffect } from "react";
+import React, { createContext, useState,useEffect, useContext } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -30,237 +30,134 @@ const API_URL = import.meta.env.VITE_API_URL;
 import toast, { Toaster } from "react-hot-toast";
 import Profile from "./pages/Profile";
 import AddAddress from "./pages/Address/addAddress";
+import EditCategory from "./pages/Category/editCategory";
+
+// ---- MOVED OUTSIDE App ----{Resolved Error}
+// {Because there was an error comming : that after edit/upload the category page become non responsive freezes}
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
+const MainLayout = ({ children }) => {
+  const { isSidebarOpen, toggleSidebar } = useContext(MyContext);
+  return (
+    <section className="main">
+      <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+      <div className="contentMain flex">
+        <div
+          className={`sidebarWrapper transition-all duration-300 ${
+            isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
+          }`}
+        >
+          <Sidebar toggleSidebar={toggleSidebar} />
+        </div>
+
+        <div
+          className={`contentRight py-5 px-5 transition-all duration-300 ${
+            isSidebarOpen ? "w-[82%]" : "w-full"
+          }`}
+        >
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/sign-up",
+    element: <SignUp />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  
+  {
+    path: "/verify-account",
+    element: <VerifyAccount />,
+  },
+  {
+    path: "/change-password",
+    element: <ChangePassword />,
+  },
+  {
+    path: "/", 
+    element: <MainLayout><Dashboard /></MainLayout>,
+  },
+  {
+    path: "/products", 
+    element: <MainLayout><Product /></MainLayout>,
+  },
+  {
+    path: "/product/upload",
+    exact:true,
+    element:(
+      <>
+      <AddProduct/>
+      </>
+    ),
+  },
+  {
+    path: "/homeSlider/list", 
+    element: <MainLayout><HomeSliderBanners /></MainLayout>,
+  },
+  {
+    path: "/category/list", 
+    element: <MainLayout><CategoryList /></MainLayout>,
+  },
+  {
+    path: "/subCategory/list", 
+    element: <MainLayout><SubCategoryList /></MainLayout>,
+  },
+  {
+    path: "/users", 
+    element: <MainLayout><Users /></MainLayout>,
+  },
+  {
+    path: "/profile", 
+    element: <MainLayout><Profile /></MainLayout>,
+  },
+   
+]);
+
+function createData(
+  id,
+  name,
+  category,
+  subCategory,
+  oldPrice,
+  newPrice,
+  stock
+) {
+  return { id, name, category, subCategory, oldPrice, newPrice, stock };
+}
+
+// ---- END MOVED OUTSIDE App ----
 
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLogin, setIsLogin] = useState(false);
   const [userData, setUserData] = useState(null);
-   const [address, setAddress] = useState([]);
+  const [address, setAddress] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
- const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
+  const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
     model : "",
+    id:""
   });
 
-  
-     const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
-  
-
-const context = createContext(MyContext);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
 
-  const router = createBrowserRouter([
-    {
-      path: "/login",
-      element: <Login />,
-    },
-    {
-      path: "/sign-up",
-      element: <SignUp />,
-    },
-    {
-      path: "/forgot-password",
-      element: <ForgotPassword />,
-    },
-    
-    {
-      path: "/verify-account",
-      element: <VerifyAccount />,
-    },
-    {
-      path: "/change-password",
-      element: <ChangePassword />,
-    },
-    {
-      path: "/", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <Dashboard />
-            </div>
-          </div>
-        </section>
-      ),
-    },
-
-     {
-      path: "/products", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <Product/>
-            </div>
-          </div>
-        </section>
-      ),
-    },
-     {
-      path: "/product/upload",
-      exact:true,
-      element:(
-        <>
-        <AddProduct/>
-        </>
-      ),
-    },
-     {
-      path: "/homeSlider/list", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <HomeSliderBanners/>
-            </div>
-          </div>
-        </section>
-      ),
-    },
-     {
-      path: "/category/list", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <CategoryList/>
-            </div>
-          </div>
-        </section>
-      ),
-    },
-     {
-      path: "/subCategory/list", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <SubCategoryList/>
-            </div>
-          </div>
-        </section>
-      ),
-    },
-         {
-      path: "/users", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <Users/>
-            </div>
-          </div>
-        </section>
-      ),
-    },
-            {
-      path: "/profile", 
-      element: (
-        <section className="main">
-          <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-          <div className="contentMain flex">
-            <div
-              className={`sidebarWrapper transition-all duration-300 ${
-                isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-              }`}
-            >
-              <Sidebar toggleSidebar={toggleSidebar} />
-            </div>
-
-            <div
-              className={`contentRight py-5 px-5 transition-all duration-300 ${
-                isSidebarOpen ? "w-[82%]" : "w-full"
-              }`}
-            >
-              <Profile/>
-            </div>
-          </div>
-        </section>
-      ),
-    },
-     
-  ]);
-    const [productRows, setProductRows] = useState([ 
+  const [productRows, setProductRows] = useState([ 
     createData(
       1,
       "Vegetable Steamer for Cooking",
@@ -380,18 +277,6 @@ const context = createContext(MyContext);
     ),
   ]);
 
-function createData(
-  id,
-  name,
-  category,
-  subCategory,
-  oldPrice,
-  newPrice,
-  stock
-) {
-  return { id, name, category, subCategory, oldPrice, newPrice, stock };
-}
-
  const alertBox=(type,msg)=>{
   if(type==='success'){
     toast.success(msg);
@@ -404,6 +289,7 @@ function createData(
   const values = {
     isSidebarOpen,
     setIsSidebarOpen,
+    toggleSidebar,
     isLogin,
     setIsLogin,
     isOpenFullScreenPanel,
@@ -413,32 +299,10 @@ function createData(
     userData,
     setUserData,
     setAddress,
-    address
+    address,
+    refreshKey,
+    triggerRefresh,
   };
-
-/*useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(
-          `${API_URL}/api/user/user-details`,
-          { withCredentials: true }
-        );
-
-
-        if (res.data.success) {
-          setUserData(res.data.data);
-          setIsLogin(true);
-          window.location.href = "/login";
-        }
-      } catch (err) {
-        setUserData(null);
-        setIsLogin(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-*/
 
 useEffect(() => {
   const token = localStorage.getItem("accessToken");
@@ -524,6 +388,10 @@ useEffect(() => {
 
         {
           isOpenFullScreenPanel ?.model === "Add New Address" && <AddAddress/>
+        }
+        
+        {
+          isOpenFullScreenPanel ?.model === "Edit Category" && <EditCategory/>
         }
       </Dialog>
       
