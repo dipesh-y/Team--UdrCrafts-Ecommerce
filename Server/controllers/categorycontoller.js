@@ -90,17 +90,17 @@ export async function createCategory(request, response) {
 
 export async function getCategory(request, response) {
   try {
-    const categories = await CategoryModel.find();
+    const categories = await CategoryModel.find().lean();
 
     const map = {};
     categories.forEach((cat) => {
-      map[cat._id] = { ...cat._doc, children: [] };
+      map[cat._id] = { ...cat, children: [] };
     });
 
     const rootCategories = [];
 
     categories.forEach((cat) => {
-      if (cat.parentId) {
+      if (cat.parentId && map[cat.parentId]) {
         map[cat.parentId].children.push(map[cat._id]);
       } else {
         rootCategories.push(map[cat._id]);
@@ -112,9 +112,12 @@ export async function getCategory(request, response) {
       success: true,
       categories: rootCategories,
     });
+
   } catch (error) {
+    console.error("Get Category Error:", error);
+
     return response.status(500).json({
-      message: error.message | error,
+      message: error.message || error,
       error: true,
       success: false,
     });

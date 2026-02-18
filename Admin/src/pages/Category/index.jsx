@@ -182,68 +182,73 @@ const CategoryList = () => {
               </TableHead>
 
 
-              <TableBody>
-                {catData?.length !== 0 ? (
-                  catData
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((category, index) => (
-                      <TableRow hover key={category._id || index}>
-                        <TableCell padding="checkbox">
-                          <Checkbox color="primary" />
-                        </TableCell>
+             <TableBody>
+  {Array.isArray(catData) && catData.length > 0 ? (
+    catData
+      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+      .map((category, index) => (
+        <TableRow hover key={category?._id || index}>
+          <TableCell padding="checkbox">
+            <Checkbox color="primary" />
+          </TableCell>
 
-                        {/* Column: Image */}
-                        <TableCell>
-                          <div className="w-[50px] h-[50px] overflow-hidden rounded-md border border-gray-200">
-                            <LazyLoadImage 
-                              src={category.image} 
-                              alt={category.name} 
-                              // className="w-full h-full object-cover" 
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-                          </div>
-                        </TableCell>
+          {/* Image Column */}
+          <TableCell>
+            <div className="w-[50px] h-[50px] overflow-hidden rounded-md border border-gray-200">
+              <LazyLoadImage
+                 src={category.image?.[0]}
+                 alt={category.name}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+            </div>
+          </TableCell>
 
-                        {/* Column: Name */}
-                        <TableCell>
-                          <span className="font-medium text-gray-700">{category.name}</span>
-                        </TableCell>
+          {/* Name Column */}
+          <TableCell>
+            <span className="font-medium text-gray-700">
+              {category?.name}
+            </span>
+          </TableCell>
 
-                        {/* Actions Cell - Re-adding View, Edit, and Delete */}
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <TooltipMUI title="Edit Category" placement="top">
-                              <Button className="!w-[35px] !h-[35px] bg-[#f1f1f1] !rounded-full hover:!bg-[#ccc]" onClick={() =>
-                                  context?.setIsOpenFullScreenPanel({
-                                    open: true,
-                                    model: "Edit Category",
-                                    id:category?._id
-                                    
-                                })}>
-                                <FaEdit className="text-[rgba(0,0,0,0.7)] text-[20px]" />
-                                
-                                
-                              </Button>
-                            </TooltipMUI>
+          {/* Actions Column */}
+          <TableCell>
+            <div className="flex items-center gap-1">
+              <TooltipMUI title="Edit Category" placement="top">
+                <Button
+                  className="!w-[35px] !h-[35px] bg-[#f1f1f1] !rounded-full hover:!bg-[#ccc]"
+                  onClick={() =>
+                    context?.setIsOpenFullScreenPanel({
+                      open: true,
+                      model: "Edit Category",
+                      id: category?._id,
+                    })
+                  }
+                >
+                  <FaEdit className="text-[rgba(0,0,0,0.7)] text-[20px]" />
+                </Button>
+              </TooltipMUI>
 
-                            <TooltipMUI title="Delete" placement="top">
-                              <Button className="!w-[35px] !h-[35px] bg-[#f1f1f1] !rounded-full hover:!bg-[#ccc]" 
-                              onClick={()=>deleteCat(category?._id)} >
-                                <AiTwotoneDelete className="text-[rgba(0,0,0,0.7)] text-[25px]" />
-                              </Button>
-                            </TooltipMUI>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length + 1} align="center">
-                        Loading categories...
-                      </TableCell>
-                    </TableRow>
-                  )}
-              </TableBody>
+              <TooltipMUI title="Delete" placement="top">
+                <Button
+                  className="!w-[35px] !h-[35px] bg-[#f1f1f1] !rounded-full hover:!bg-[#ccc]"
+                  onClick={() => deleteCat(category?._id)}
+                >
+                  <AiTwotoneDelete className="text-[rgba(0,0,0,0.7)] text-[25px]" />
+                </Button>
+              </TooltipMUI>
+            </div>
+          </TableCell>
+        </TableRow>
+      ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={columns.length + 1} align="center">
+        {Array.isArray(catData) ? "No categories found." : "Loading categories..."}
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
+
 
 
             </Table>
