@@ -20,7 +20,7 @@ Files edited
   - Replaced inline/incorrect context import with `../../context/MyContext`
   - Added controlled inputs and submit handler
   - Added `isLoading` and `postData('/api/login')` call
-  - On success calls `context.setIsLogin(true)` if available and navigates to `/`
+  - On success calls `context.setIsLogin(true)` if available and navigates to home
 
 - Client/src/components/ProductItem/index.jsx
   - Fixed `MyContext` import path to `../../context/MyContext`
