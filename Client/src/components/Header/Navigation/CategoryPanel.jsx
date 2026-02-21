@@ -1,48 +1,48 @@
-import React, { useState } from "react";
-import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
+import React, { useContext, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import "./style.css";
+import Divider from '@mui/material/Divider';
+import { IoMdClose } from "react-icons/io";
 
-import { IoCloseSharp } from "react-icons/io5";
-
-import { Link } from "react-router-dom";
-
-import CategoryCollapse from "../../CategoryCollapse";
+import CategoryCollapse from '../../CategoryCollapse/index.jsx'
+import Button from '@mui/material/Button';
+import { MyContext } from '../../../App';
 
 const CategoryPanel = (props) => {
-  const [submenuIndex, setSubmenuIndex] = useState(null);
-  const [innerSubmenuIndex, setInnerSubmenuIndex] = useState(null);
+
 
   const toggleDrawer = (newOpen) => () => {
     props.setIsOpenCatPanel(newOpen);
+    props.propsSetIsOpenCatPanel(newOpen);
   };
+  const context =useContext(MyContext)
 
-  const DrawerList = (
-    <Box sx={{ width: 250 }} role="presentation" className="CategoryPanel">
-      <div className="p-3">
-        <Link to="/" className="flex justify-center">
-          <img
-            src="https://serviceapi.spicezgold.com/download/1750047766437_logo.jpg"
-            alt="Logo"
-            className="w-[170px]"
-          />
-        </Link>
-      </div>
-      <h3 className="p-3 text-[18px] font-[500] flex items-center justify-between px-3">
+ const DrawerList = (
+    <Box sx={{ width: 250 }} role="presentation" className='categoryPanel'>
+  
+      <h3 className='p-3 text-[20px] font-[500] flex items-center justify-between'>
         Shop By Categories
-        <IoCloseSharp
-          onClick={() => props.openCategoryPanel(false)}
-          className="cursor-pointer text-[20px]"
+        <IoMdClose
+          onClick={() => props.setIsOpenCatPanel(false)}
+          className='cursor-pointer text-[20px]'
         />
       </h3>
-      <CategoryCollapse />
+      {
+        props?.data?.length!==0 &&   <CategoryCollapse data={props?.data} setIsOpenCatPanel={props.setIsOpenCatPanel} />
+      }
+
+      <Divider />
+ 
     </Box>
   );
-
   return (
-    <Drawer open={props.isOpenCatPanel} onClose={toggleDrawer(false)}>
+    <Drawer open={props.isOpenCatPanel} onClose={() => props.setIsOpenCatPanel(false)}>
       {DrawerList}
     </Drawer>
   );
 };
-
 export default CategoryPanel;
+
+

@@ -1,20 +1,22 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { IoCloseSharp } from "react-icons/io5";
-import { GoTriangleDown } from "react-icons/go";
-import Rating from "@mui/material/Rating";
+import { IoMdClose } from "react-icons/io";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import { GoTriangleDown } from "react-icons/go";
+import { deleteData, editData, fetchDataFromApi } from "../../Utils/Api";
+import { useContext } from "react";
+import { MyContext } from "../../App.jsx";
 
 const CartItems = (props) => {
   const [sizeanchorEl, setSizeAnchorEl] = useState(null);
-  const [selectedSize, setCartItems] = useState(props.size);
+  const [selectedSize, setSelectedSize] = useState(props.size);
   const openSize = Boolean(sizeanchorEl);
 
   const [qtyanchorEl, setQtyAnchorEl] = useState(null);
   const [selectedQty, setSelectedQty] = useState(props.qty);
   const openQty = Boolean(qtyanchorEl);
+    const context = useContext(MyContext);
 
   const handleClickSize = (event) => {
     setSizeAnchorEl(event.currentTarget);
@@ -22,9 +24,15 @@ const CartItems = (props) => {
   const handleCloseSize = (value) => {
     setSizeAnchorEl(null);
     if (value !== null) {
-      setCartItems(value);
+      setSelectedSize(value);
+      props.onSizeChange && props.onSizeChange(value);
     }
   };
+
+const cleanPrice = (price) => {
+  return Number(String(price).replace(/[^0-9.]/g, ""));
+};
+
 
   const handleClickQty = (event) => {
     setQtyAnchorEl(event.currentTarget);
@@ -32,101 +40,158 @@ const CartItems = (props) => {
   const handleCloseQty = (value) => {
     setQtyAnchorEl(null);
     if (value !== null) {
+      // Stock validation
+      if (value > props?.item?.countInStock) {
+        context.alertBox("error", "The requested quantity exceeds available stock.");
+        return;
+      }
       setSelectedQty(value);
+      const cartObj = {
+        _id: props?.item?._id,
+        qty: value,
+        subTotal: Number(props?.item?.price) * value,
+        size: selectedSize,
+      };
+      editData("/api/cart/update-qty", cartObj).then((res) => {
+        if (res?.error === false) {
+          context.alertBox("success", res?.message);
+        }
+      });
+      props.onQtyChange && props.onQtyChange(value);
     }
   };
 
+  const updateCart = (selectedVal, qty, field) => {
+    if (field === "size") {
+      fetchDataFromApi(`/api/product/${props?.item?.productId}`).then((res) => {
+        const product = res?.product;
+        if (product?.size?.includes(selectedVal)) {
+          props.onSizeChange && props.onSizeChange(selectedVal);
+        } else {
+          context.alertBox("error", "Size not available");
+        }
+      });
+    }
+  };
+
+  const removeItem = (id) => {
+    deleteData(`/api/cart/delete-cart-item/${id}`).then((res) => {
+      context.alertBox("success", "Product removed from cart");
+      context?.getCartItems();
+    })
+  }
+
   return (
-    <div className="cartItem w-full p-3 flex items-center gap-4 pb-5 border-b border-[rgba(0,0,0,0.1)]">
-      <div className="img w-[15%] rounded-md overflow-hidden">
-        <Link to="/product/7845" className="group">
-          <img
-            src="https://api.spicezgold.com/download/file_1734529362999_gosriki-women-s-pink-ethnic-motifs-printed-kurta-with-trouser-dupatta-product-images-rvpkyh5qdr-0-202310141511.webp"
-            className="w-full group-hover:scale-105 transition-all "
+    <>
+      <div className="cartItem w-full p-3 flex items-center gap-4 pb-5 border-b border-[rgba(0,0,0,0.1)]">
+        <div className="img w-[15%] rounded-md overflow-hidden">
+          <Link to={`/product/${props?.item?._id}`} className="group">
+            <img
+              src={props?.item?.image}
+              alt=""
+              className="w-full group-hover:scale-105 transition-all"
+            />
+          </Link>
+        </div>
+
+        <div className="info w-[85%] relative">
+          <IoMdClose
+            className="cursor-pointer absolute top-[0px] right-[1px] text-[18px] link transition-all"
+            onClick={()=>removeItem(props?.item?._id)}
           />
-        </Link>
-      </div>
+          <span className="text-[13px] font-[600] ">{props?.item?.brand}</span>
+          <h3 className="text-[15px] font-[600] text-black">
+            <Link to={`/product/${props?.item?.productId}`} className="link">
+              {props?.item?.productTitle}
+            </Link>
+          </h3>
+          <div className="flex items-center gap-4 !mt-2">
+            {props?.item?.productSizes?.length !== 0 && (
+              <div className="relative">
+                <span
+                  className="flex items-center justify-center bg-[#f1f1f1] text-[12px] font-[600] py-1 px-2 rounded-md cursor-pointer"
+                  onClick={handleClickSize}
+                >
+                  Size : {selectedSize} <GoTriangleDown className="" />
+                </span>
+                <Menu
+                  id="size-menu"
+                  anchorEl={sizeanchorEl}
+                  open={openSize}
+                  onClose={() => handleCloseSize(null)}
+                  slotProps={{
+                    list: {
+                      "aria-labelledby": "basic-button",
+                    },
+                  }}
+                >
+                  {props?.item?.productSizes?.map((item, index) => (
+                    <MenuItem
+                      key={index}
+                      className={`${item === selectedSize && "selected"}`}
+                      onClick={() => updateCart(item, props?.item?.quantity,"size")}
+                    >
+                      {item}
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </div>
+            )}
 
-      <div className="info w-[85%] relative">
-        <IoCloseSharp className="cursor-pointer absolute top-[0px] right-[0px] text-[22px] link transition-all" />
+            <div className="relative">
+              <span
+                className="flex items-center justify-center bg-[#f1f1f1] text-[12px] font-[600] py-1 px-2 rounded-md cursor-pointer"
+                onClick={handleClickQty}
+              >
+                Qty: {selectedQty} <GoTriangleDown className="" />
+              </span>
+              <Menu
+                id="Qty-menu"
+                anchorEl={qtyanchorEl}
+                open={openQty}
+                onClose={() => handleCloseQty(null)}
+                slotProps={{
+                  list: {
+                    "aria-labelledby": "basic-button",
+                  },
+                }}
+              >
+                {
+                  Array.from({length: 25}).map((_, index)=>(
+                  <MenuItem key={index} onClick={() => handleCloseQty(index+1)}>{index+1}</MenuItem>
+                  )
+               )}
 
-        <span className="text-[13px]">Lorem</span>
-        <h3 className="text-[15px] ">
-          <Link className="link">A-Line kurti with Sahara & Dupatta</Link>
-        </h3>
-        <Rating name="size-small" defaultValue={4} size="small" readOnly />
-
-        <div className="flex item-centre gap-4 mt-2">
-          <div className="relative">
-            <span
-              className="flex item-centre justify-centre bg-[#f1f1f1] text-[11px] font-[600] py-1 px-2 rounded-md cursor-pointer"
-              onClick={handleClickSize}
-            >
-              Size: {selectedSize} <GoTriangleDown />
-            </span>
-            <Menu
-              id="size-menu"
-              anchorEl={sizeanchorEl}
-              open={openSize}
-              onClose={() => handleCloseSize(null)}
-              slotProps={{
-                list: {
-                  "aria-labelledby": "basic-button",
-                },
-              }}
-            >
-              <MenuItem onClick={() => handleCloseSize("S")}>S</MenuItem>
-              <MenuItem onClick={() => handleCloseSize("M")}>M</MenuItem>
-              <MenuItem onClick={() => handleCloseSize("L")}>L</MenuItem>
-              <MenuItem onClick={() => handleCloseSize("XL")}>XL</MenuItem>
-              <MenuItem onClick={() => handleCloseSize("XXL")}>XXL</MenuItem>
-            </Menu>
+              </Menu>
+            </div>
           </div>
 
-          <div className="relative">
-            <span
-              className="flex item-centre justify-centre bg-[#f1f1f1] text-[11px] font-[600]  py-1 px-2 rounded-md cursor-pointer"
-              onClick={handleClickQty}
-            >
-              Qty: {selectedQty} <GoTriangleDown />
-            </span>
-            <Menu
-              id="size-menu"
-              anchorEl={qtyanchorEl}
-              open={openQty}
-              onClose={() => handleCloseQty(null)}
-              slotProps={{
-                list: {
-                  "aria-labelledby": "basic-button",
-                },
-              }}
-            >
-              <MenuItem onClick={() => handleCloseQty(1)}>1</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(2)}>2</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(3)}>3</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(4)}>4</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(5)}>5</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(6)}>6</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(7)}>7</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(8)}>8</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(9)}>9</MenuItem>
-              <MenuItem onClick={() => handleCloseQty(10)}>10</MenuItem>
-            </Menu>
-          </div>
-        </div>
+         <div className="flex items-center gap-4 !mt-2">
 
-        <div className="flex items-center gap-4 mt-2">
-          <span className="price text text-[14px] font-[600]">$58.00</span>
-          <span className="oldPrice line-through text-gray-500 text-[14px] font-[500]">
-            $58.00
-          </span>
-          <span className="price text-primary text-[14px] font-[600]">
-            55% OFF
-          </span>
+  {/* SALE PRICE */}
+  <span className="price text-black text-[15px] font-[600]">
+    {context?.formatPrice(cleanPrice(props?.item?.oldPrice))}
+  </span>
+
+  {/* ORIGINAL PRICE */}
+  <span className="oldPrice line-through text-gray-500 text-[15px] font-[500]">
+    {context?.formatPrice(cleanPrice(props?.item?.price))}
+  </span>
+
+  {/* DISCOUNT */}
+  <span className="price text-orange-600 text-[15px] font-[600]">
+    {props?.item?.discount}% OFF
+  </span>
+
+</div>
+
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
 export default CartItems;
+
+
+

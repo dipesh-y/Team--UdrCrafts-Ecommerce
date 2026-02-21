@@ -1,104 +1,114 @@
 import mongoose from 'mongoose';
 
 const productSchema = mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
+    name:{
+        type:String,
+        required:true,
     },
-    description: {
-        type: String,
-        required: true
+    description:{
+        type:String,
+        required:true,
     },
-    images: [
+    images:[
         {
-            type: String,
+            type:String,
             required: true
         }
     ],
-    brand: {
+    brand:{
         type: String,
         default: ''
     },
-    price: {
-        type: Number,
-        default: 0
+    price:{
+        type:Number,
+        default:0
     },
-    oldPrice: {
-        type: Number,
-        default: 0
+    oldPrice:{
+        type:Number,
+        default:0
     },
     catName:{
         type:String,
-        default:''
+        default: ''
     },
     catId:{
         type:String,
-        default:''
+        default: ''
     },
     subCatId:{
         type:String,
-        default:''
+        default: ''
     },
     subCat:{
         type:String,
-        default:''
+        default: ''
     },
     thirdsubCat:{
         type:String,
-        default:''
+        default: ''
     },
     thirdsubCatId:{
         type:String,
+        default: ''
+    },
+    category:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Category',
+        required:false
+    },
+    countInStock:{
+        type:Number,
+        required:true,  
+    },
+    rating:{
+        type:Number,
+        default:0
+    },
+    isFeatured:{
+        type:Boolean,
+        default:false
+    },
+    discount:{
+        type:Number,
+        default:0
+    },
+    sale:{
+        type:Number,
+        default:0
+    },
+    productRam:[
+        {
+           type:String,
+           default:null
+        }
+    ],
+    size:[
+        {
+            type:String,
+            default:null
+        }
+    ],
+    productWeight:[
+        {
+            type:String,
+            default:null
+        }
+    ],
+    sizeChart:{
+        type:String,
         default:''
     },
-   category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',
-        // required: true
-    },  
-   
-    countInStock: {
-        type: Number,
-        required: true,
+    dateCreated:{
+        type:Date,
+        default:Date.now
     },
-    rating: {
-        type: Number,
-        default: 0,
-    },
-    isFeatured: {
-        type: Boolean,
-        default: false,
-    },
-    discount: {
-        type: Number,
-        required: true,
-    },
-    productRam: [
-        {
-            type: String,
-            default: null,
-        }
-    ],
-    size: [
-        {
-            type: String,
-            default: null,
-        }
-    ],
-    productWeight: [
-        {
-            type: String,
-            default: null,
-        }
-    ],
-    dateCreated: {
-        type: Date,
-        default: Date.now,
-    },
-},{
-    timestamps : true
-});
+                  
+},
+   {
+      timestamps:true
+   }
+);
 
-const ProductModel = mongoose.model('Product',productSchema)
+const ProductModel = mongoose.model('product',productSchema);
+export default ProductModel;
 
-export default ProductModel

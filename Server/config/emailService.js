@@ -1,4 +1,3 @@
-import http from 'http';
 import nodemailer from 'nodemailer';
 import sendEmailFun from './sendEmail.js';
 
@@ -9,7 +8,7 @@ const transporter = nodemailer.createTransport({
     secure: true, //true for port 465, false for other ports
     auth: {
         user: process.env.EMAIL, //your SMTP username
-        pass: process.env. EMAIL_PASS, //your SMTP password
+        pass: process.env.EMAIL_PASS, //your SMTP password
     },
 });
 
@@ -31,3 +30,4 @@ async function sendEmail(to, subject, text, html) {
 }
 
 export {sendEmail};
+

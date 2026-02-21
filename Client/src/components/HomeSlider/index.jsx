@@ -1,69 +1,58 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Navigation, Autoplay } from "swiper/modules";
+import { Autoplay, Navigation } from "swiper/modules";
+import { MyContext } from "../../App";
+const HomeSlider = (props) => {
 
-const HomeSlider = () => {
+  const context = useContext(MyContext)
+
   return (
-    <div className="homeSlider py-4">
-      <div className="container">
+    <div className="homeSlider w-full bg-gray-50 py-4 md:py-6 relative z-[99]">
+      <div className="max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6">
         <Swiper
-          loop={true}
-          spaceBetween={10}
-          navigation={true}
           modules={[Navigation, Autoplay]}
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
+          // navigation={context?.windowWidth < 992 ? false : true}
+          autoplay={{ delay: 3000, disableOnInteraction: false }}
+          loop={true}
+          grabCursor={true}
+          centeredSlides={false}
+          slidesPerView={1}
+          spaceBetween={20}
+
+          breakpoints={{
+            640: {
+              slidesPerView: 1,
+              spaceBetween: 20,
+            },
+            768: {
+              slidesPerView: 1,
+              spaceBetween: 20,
+            },
+            1024: {
+              slidesPerView: 1,
+              spaceBetween: 20,
+            },
           }}
           className="sliderHome"
         >
-          <SwiperSlide>
-            <div className="item rounded-[20px] overflow-hidden">
-              <img
-                src="https://api.spicezgold.com/download/file_1734524878924_1721277298204_banner.jpg"
-                alt="Banner Slide"
-                className="w-full"
-              />
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <div className="item rounded-[20px] overflow-hidden">
-              <img
-                src="https://api.spicezgold.com/download/file_1734524985581_NewProject(11).jpg"
-                alt="Banner Slide"
-                className="w-full"
-              />
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <div className="item rounded-[20px] overflow-hidden">
-              <img
-                src="https://api.spicezgold.com/download/file_1734525014348_NewProject(7).jpg"
-                alt="Banner Slide"
-                className="w-full"
-              />
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <div className="item rounded-[20px] overflow-hidden">
-              <img
-                src="https://api.spicezgold.com/download/file_1734524930884_NewProject(6).jpg"
-                alt="Banner Slide"
-                className="w-full"
-              />
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <div className="item rounded-[20px] overflow-hidden">
-              <img
-                src="https://api.spicezgold.com/download/file_1734525002307_1723967638078_slideBanner1.6bbeed1a0c8ffb494f7c.jpg"
-                alt="Banner Slide"
-                className="w-full"
-              />
-            </div>
-          </SwiperSlide>
+          {
+            props?.data?.data?.length !== 0 && props?.data?.map((item, index) => {
+              return item.images.map((image, imgIndex) => (
+                <SwiperSlide key={`${index}-${imgIndex}`}>
+                  <div className="item rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 ease-in-out">
+                    <img
+                      src={image}
+                      alt={`Banner ${index + 1}`}
+                      className="w-full h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] object-cover"
+                    />
+                  </div>
+                </SwiperSlide>
+              ))
+            })
+          }
+
         </Swiper>
       </div>
     </div>
@@ -71,3 +60,5 @@ const HomeSlider = () => {
 };
 
 export default HomeSlider;
+
+

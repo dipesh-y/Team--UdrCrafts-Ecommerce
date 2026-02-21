@@ -1,296 +1,173 @@
-import React from 'react'
-import { useState } from "react";
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import Button from "../../components/Button";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { CgLogIn } from "react-icons/cg";
-import { FaRegUser } from "react-icons/fa6";
-import { FaRegEye } from "react-icons/fa";
-import { FaEyeSlash } from "react-icons/fa";
-import MyContext from "./../../context/MyContext";
-import { useContext } from 'react';
-import { postData } from '../../utils/api';
+import { FaRegUser, FaRegEye, FaEyeSlash } from "react-icons/fa";
+import loginbg from "../../assets/Login.jpg";
+import logo from "../../assets/logo.png";
+import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useState, useContext } from "react";
+import { MyContext } from "../../App.jsx";
+import { postData } from "../../../Utils/Api.js";
+
 const ChangePassword = () => {
-
-
   const [isPasswordShow, setIsPasswordShow] = useState(false);
   const [isPasswordShow2, setIsPasswordShow2] = useState(false);
+  const [isPasswordShow3, setIsPasswordShow3] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const [formFields, setFormFields] = useState({
-    email: "",
+    email: localStorage.getItem("userEmail"),
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  const navigate = useNavigate();
+  const context = useContext(MyContext);
+  const history = useNavigate();
 
-
-  const { alertBox } = useContext(MyContext);
-
-
-  const onChange = (e) => {
+  const onchangeInput = (e) => {
     const { name, value } = e.target;
-    setFormFields((prev) => ({ ...prev, [name]: value }));
+    setFormFields({
+      ...formFields,
+      [name]: value,
+    });
   };
-  const handleSubmit = async (e) => {
+
+  const valideValue = Object.values(formFields).every((el) => el);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!formFields.email.trim()) {
-      alertBox("error", "Please enter email");
-      return;
-    }
-
-    if (!formFields.oldPassword.trim()) {
-      alertBox("error", "Please enter old password");
-      return;
-    }
-
-
-    if (!formFields.newPassword.trim()) {
-      alertBox("error", "Please enter new password");
-      return;
-    }
-
-    if (!formFields.confirmPassword.trim()) {
-      alertBox("error", "Please confirm password");
-      return;
-    }
-
-    if (formFields.newPassword !== formFields.confirmPassword) {
-      alertBox("error", "Passwords do not match");
-      return;
-    }
-
     setIsLoading(true);
 
-    try {
-      const res = await postData("/api/user/reset-password", {
-        email: formFields.email,
-        oldPassword: formFields.oldPassword,
-        newPassword: formFields.newPassword,
-        confirmPassword: formFields.confirmPassword,
-      });
-
-      if (res?.success) {
-        alertBox("success", res.message || "Password reset successful");
-        navigate("/login");
-      } else {
-        alertBox("error", res?.message || "Reset failed");
-      }
-    } catch (err) {
-      alertBox("error", err.response?.data?.message || "Something went wrong");
-    } finally {
+    if (formFields.oldPassword === "") {
+      context.alertBox("error", "Please enter old password");
       setIsLoading(false);
+      return false;
     }
+
+    if (formFields.newPassword === "") {
+      context.alertBox("error", "Please enter new password");
+      setIsLoading(false);
+      return false;
+    }
+
+    if (formFields.confirmPassword === "") {
+      context.alertBox("error", "Please enter confirm password");
+      setIsLoading(false);
+      return false;
+    }
+
+    if (formFields.confirmPassword !== formFields.newPassword) {
+      context.alertBox("error", "New password and confirm password do not match");
+      setIsLoading(false);
+      return false;
+    }
+
+    postData(`/api/user/reset-password`, formFields).then((res) => {
+      setIsLoading(false);
+      if (res?.error === false) {
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("actionType");
+        context.alertBox("success", res?.message);
+        history("/login");
+      } else {
+        context.alertBox("error", res?.message);
+      }
+    });
   };
 
-
-
-  /* const handleSubmit = async (e) => {
-     e.preventDefault();
-     if (!formFields.email.trim()) {
-   openAlertBox("error", "Please enter email");
-   return;
- }
- if (!formFields.email.trim()) {
-   openAlertBox("error", "Please enter email");
-   return;
- }
- 
- if (!formFields.newPassword.trim()) {
-   openAlertBox("error", "Please enter new password");
-   return;
- }
- 
- if (!formFields.confirmPassword.trim()) {
-   openAlertBox("error", "Please confirm your password");
-   return;
- }
- 
- if (formFields.newPassword !== formFields.confirmPassword) {
-   openAlertBox("error", "Passwords do not match");
-   return;
- }
- 
- 
-     if (formFields.newPassword === "") {
-       openAlertBox("error", "Please enter new password");
-       return;
-     }
- 
-     if (formFields.confirmPassword === "") {
-       openAlertBox("error", "Please enter confirm password");
-       return;
-     }
- 
-     if (formFields.newPassword !== formFields.confirmPassword) {
-       openAlertBox("error", "Passwords do not match");
-       return;
-     }
- 
-     setIsLoading(true);
- 
-     try {
-       const res = await postData("/api/user/reset-password", {
-         email: formFields.email,
-         newPassword: formFields.newPassword,
-         confirmPassword: formFields.confirmPassword,
-       });
- 
-       if (res?.success) {
-         openAlertBox("success", res.message || "Password reset successful");
- 
-         localStorage.removeItem("userEmail");
-         localStorage.removeItem("actionType");
- 
-         navigate("/login");
-       } else {
-         openAlertBox("error", res.message || "Reset failed");
-       }
-     } catch (err) {
-       console.error(err);
-       openAlertBox(
-         "error",
-         err.response?.data?.message || "Something went wrong"
-       );
-     } finally {
-       setIsLoading(false);
-     }
-   };
- */
-
   return (
-    <section className="bg-white w-full ">
-      <header className='w-full fixed top-0 left-0 px-4 py-3 flex items-center justify-between z-50'>
-        <Link to="/">
-          <img
-            src="https://isomorphic-furyroad.vercel.app/_next/static/media/logo.a795e14a.svg"
-            className="w-[200px]"
-          />
-        </Link>
+    <section className="w-full min-h-screen bg-gray-50 flex items-start md:items-center justify-center py-12 px-4">
+      <div className="w-full max-w-xl mx-auto">
+        <header className="w-full mb-6 flex items-center justify-between">
+          <Link to="/">
+            <img src={logo} alt="logo-image" className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <NavLink to="/login" className="hidden sm:inline">
+              <button className="rounded-full text-[rgba(0,0,0,0.8)] bg-gray-200 px-3 py-2 flex gap-2 items-center hover:bg-gray-300 text-sm">
+                <CgLogIn className="text-lg" /> <span>Login</span>
+              </button>
+            </NavLink>
+            <NavLink to="/signup" className="hidden sm:inline">
+              <button className="rounded-full text-[rgba(0,0,0,0.8)] px-3 py-2 flex gap-2 items-center hover:bg-gray-100 text-sm">
+                <FaRegUser className="text-base" /> <span>Sign Up</span>
+              </button>
+            </NavLink>
+          </div>
+        </header>
 
-        <div className="flex items-center gap-0">
-          <NavLink to="/login" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
-            <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-1">
-              <CgLogIn className="text-[18px]" />Login
-            </Button>
-          </NavLink>
-
-          <NavLink to="/sign-up" className={({ isActive }) => (isActive ? "isActive" : undefined)}>
-            <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-1">
-              <FaRegUser className="text-[15px]" />Sign Up
-            </Button>
-          </NavLink>
-        </div>
-      </header>
-      <img src="/pattern.webp" alt="" className="w-full fixed top-0 left-0 opacity-5 " />
-
-      <div className="loginBox card w-[600px] h-[auto] pb-20 mx-auto pt-20 relative z-50">
-        <div className="text-center">
-          <img src="/icon.svg" className="m-auto" />
-        </div>
-
-        <h1 className="text-center text-[35px] font-[800] mt-4">
-          Welcome Back!
-          <br />
-          You can change your password from here
-        </h1>
-
-
-        <br />
-
-
-        <form className='w-full px-8 mt-3' onSubmit={handleSubmit}>
-          <div className="form-group mb-4 w-full">
-            <h4 className="text-[14px] font-[500] mb-1">Email</h4>
-            <input
-              type="email"
-              className="w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
-    focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3"
-              name="email"
-              value={formFields.email}
-              onChange={onChange}
-              disabled={isLoading}
-            />
+        <main className="bg-white rounded-lg shadow-md p-6 md:p-8">
+          <div className="text-center">
+            <img src={logo} className="mx-auto h-20 w-32 md:h-28 md:w-36 object-cover rounded-full" />
+            <h1 className="mt-4 text-2xl md:text-3xl font-bold text-gray-800">Change your password</h1>
+            <p className="mt-2 text-sm text-gray-600">Secure your account by choosing a strong, unique password.</p>
           </div>
 
-          <div className='form-group mb-4 w-full'>
-            <h4 className='text-[14px] font-[500] mb-1'> Old Password</h4>
-            <input
-              type="password"
-              className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
-    focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-              name="oldPassword"
-              value={formFields.oldPassword}
-              onChange={onChange}
-              disabled={isLoading}
-            />
-          </div>
+          <form className="w-full mt-6 space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Old Password</label>
+              <div className="relative">
+                <input
+                  type={isPasswordShow3 ? "text" : "password"}
+                  className="w-full h-12 md:h-14 border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 px-4 text-base"
+                  name="oldPassword"
+                  onChange={onchangeInput}
+                  value={formFields.oldPassword}
+                  disabled={isLoading}
+                />
+                <button type="button" onClick={() => setIsPasswordShow3(!isPasswordShow3)} className="absolute right-2 top-2 md:top-3 p-2 text-gray-600 rounded-md hover:bg-gray-100">
+                  {isPasswordShow3 ? <FaEyeSlash className="text-lg" /> : <FaRegEye className="text-lg" />}
+                </button>
+              </div>
+            </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+              <div className="relative">
+                <input
+                  type={isPasswordShow ? "text" : "password"}
+                  className="w-full h-12 md:h-14 border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 px-4 text-base"
+                  name="newPassword"
+                  onChange={onchangeInput}
+                  value={formFields.newPassword}
+                  disabled={isLoading}
+                />
+                <button type="button" onClick={() => setIsPasswordShow(!isPasswordShow)} className="absolute right-2 top-2 md:top-3 p-2 text-gray-600 rounded-md hover:bg-gray-100">
+                  {isPasswordShow ? <FaEyeSlash className="text-lg" /> : <FaRegEye className="text-lg" />}
+                </button>
+              </div>
+            </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={isPasswordShow2 ? "text" : "password"}
+                  className="w-full h-12 md:h-14 border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 px-4 text-base"
+                  name="confirmPassword"
+                  onChange={onchangeInput}
+                  value={formFields.confirmPassword}
+                  disabled={isLoading}
+                />
+                <button type="button" onClick={() => setIsPasswordShow2(!isPasswordShow2)} className="absolute right-2 top-2 md:top-3 p-2 text-gray-600 rounded-md hover:bg-gray-100">
+                  {isPasswordShow2 ? <FaEyeSlash className="text-lg" /> : <FaRegEye className="text-lg" />}
+                </button>
+              </div>
+            </div>
 
-
-          <div className='form-group mb-4 w-full'>
-            <h4 className='text-[14px] font-[500] mb-1'> New Password</h4>
-            <div className='relative w-full'>
-              <input
-                type={isPasswordShow === false ? 'password' : 'text'}
-                className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
-              focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-                name="newPassword"
-                value={formFields.newPassword}
-                onChange={onChange}
-                disabled={isLoading === true ? true : false}
-              />
-              <Button className="!absolute top-[7px] right-[10px] z-50 !rounded-full !w-[35px]
-              !h-[35px] !min-w-[35px] !text-gray-600" onClick={() => setIsPasswordShow(!isPasswordShow)}>
-                {
-                  isPasswordShow === false ? (
-                    <FaRegEye className='text-[16px] text-blue-600' />
-                  ) : (
-                    <FaEyeSlash className='text-[16px] text-blue-600' />
-                  )}
+            <div>
+              <Button variant="contained" className="w-full py-3 text-base md:text-lg" type="submit" disabled={!valideValue || isLoading}>
+                {isLoading ? <CircularProgress color="inherit" size={22} /> : "Change Password"}
               </Button>
             </div>
-          </div>
-          <div className='form-group mb-4 w-full'>
-            <h4 className='text-[14px] font-[500] mb-1'> Confirm Password</h4>
-            <div className='relative w-full'>
-              <input
-                type={isPasswordShow2 === false ? 'password' : 'text'}
-                className='w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
-              focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-                name="confirmPassword"
-                value={formFields.confirmPassword}
-                onChange={onChange}
-                disabled={isLoading === true ? true : false}
-              />
-              <Button className="!absolute top-[7px] right-[10px] z-50 !rounded-full !w-[35px]
-              !h-[35px] !min-w-[35px] !text-gray-600" onClick={() => setIsPasswordShow2(!isPasswordShow2)}>
-                {
-                  isPasswordShow2 === false ? (
-                    <FaRegEye className='text-[16px] text-blue-600' />
-                  ) : (
-                    <FaEyeSlash className='text-[16px] text-blue-600' />
-                  )}
-              </Button>
-            </div>
-          </div>
-          <Button
-            className="btn-blue btn-lg uppercase w-full"
-            type="submit"
-            disabled={isLoading}
-            startIcon={isLoading && <CircularProgress size={18} />}
-          >
-            {isLoading ? "Changing password..." : "Change Password"}
-          </Button>
-
-        </form>
+          </form>
+        </main>
       </div>
     </section>
   );
 };
 
 export default ChangePassword;
+
+

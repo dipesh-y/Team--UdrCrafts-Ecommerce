@@ -1,166 +1,142 @@
-import React from "react";
-import HomeSlider from "../../components/HomeSlider";
-import HomeCatSlider from "../../components/HomeCatSlider";
-import { LiaShippingFastSolid } from "react-icons/lia";
-import AdsBannerSlider from "../../components/AdsBannerSlider";
-import AdsBannerSliderV2 from "../../components/AdsBannerSliderV2";
-import BlogItem from "../../components/BlogItem";
-
+import React, { useContext, useEffect, useState } from "react";
+import HomeSlider from "../../Components/HomeSlider/index.jsx";
+import HomeCatSlider from "../../Components/HomeCatSlider/index.jsx";
+import AdsBannerSlider from "../../Components/AdsBannerSlider/index.jsx";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import ProductsSlider from "../../components/ProductsSlider";
+import Box from "@mui/material/Box";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import { Navigation } from "swiper/modules";
-import HomeBannerV2 from "../../components/HomeSliderV2";
-import BannerBoxV2 from "../../components/bannerBoxV2";
+import { fetchDataFromApi } from "../../Utils/Api.js";
+import { MyContext } from "../../App.jsx";
+import ProductLoading from "../../Components/ProductLoading/Index.jsx";
+import ProductSlider from "../../Components/ProductSlider/index.jsx";
+
 
 const Home = () => {
   const [value, setValue] = React.useState(0);
+  const [homeSlidesData, setHomeSlidesData] = useState([]);
+  const [popularproductsData, setPopularProductsData] = useState([]);
+  const [ProductData, setAllProductsData] = useState([]);
+
+  const context = useContext(MyContext);
+
+  useEffect(() => {
+    fetchDataFromApi("/api/product/getAllProducts").then((res) => {
+      setAllProductsData(res?.data);
+    });
+
+    fetchDataFromApi("/api/homeSlides").then((res) => {
+      setHomeSlidesData(res?.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (context?.catData?.length > 0) {
+      fetchDataFromApi(
+        `/api/product/getAllProductsByCatId/${context?.catData[0]?._id}`
+      ).then((res) => {
+        if (res?.error === false) {
+          setPopularProductsData(res?.products);
+        }
+      });
+    }
+  }, [context?.catData]);
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
+  const filterByCatId = (id) => {
+    setPopularProductsData([])
+    fetchDataFromApi(`/api/product/getAllProductsByCatId/${id}`).then((res) => {
+      if (res?.error === false) {
+        setPopularProductsData(res?.products);
+      }
+    });
+  };
+
   return (
-    <>
-      <HomeSlider />
+    <div>
 
-      <section className="py-6  h-[500px] bg-white">
-        <div className=" container flex items-center gap-5 ">
-          <div className="part1 w-[70%]">
-            <HomeBannerV2 />
-          </div>
-          <div className="part2 w-[30%] flex items-center justify-between flex-col gap-2">
-            <BannerBoxV2
-              info="top"
-              image={
-                "https://serviceapi.spicezgold.com/download/1760160666204_1737020916820_New_Project_52.jpg"
-              }
-            />
-            <BannerBoxV2
-              info="bottom"
-              image={
-                "https://serviceapi.spicezgold.com/download/1741664665391_1741497254110_New_Project_50.jpg"
-              }
-            />
-          </div>
-        </div>
-      </section>
+      {context?.catData?.length !== 0 && (
+        <HomeCatSlider data={context?.catData} />
+      )}
+      <div className="min-h-[2vh] lg:min-h-[65vh] relative">
+      {homeSlidesData?.data?.length !== 0 && (
+        <HomeSlider data={homeSlidesData} />
+      )}
+      </div>
 
-      <HomeCatSlider />
+    
 
       <section className="bg-white py-8">
         <div className="container">
-          <div className="flex items-center justify-between">
-            <div className="leftSec">
-              <h2 className="text-[20px] font-[600]">Popular Products</h2>
-              <p className="text-[14px] font-[400]">
-                Do not miss the current offers until the end of March.
+          <div className="flex flex-col md:flex-row items-center justify-between lg:gap-4 gap-1">
+            <div className="leftSec p-4 md:p-10 text-center md:text-left w-full md:w-auto mb-4 md:mb-0">
+              <h2 className="text-[14px] sm:text-[12px] md:text-[22px] font-semibold leading-tight">
+                Popular Products
+              </h2>
+              <p className="text-[13px] md:text-[14px] text-gray-600 mt-1 mb-0">
+                SmalCouture Presents :
               </p>
             </div>
 
-            <div className="rightSec w-[60%]">
-              <Tabs
-                value={value}
-                onChange={handleChange}
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label="scrollable auto tabs example"
+            <div className="rightSec w-full md:w-[57%]">
+              <Box
+                sx={{
+                  maxWidth: { xs: 320, sm: 780 },
+                  bgcolor: "background.paper",
+                }}
               >
-                <Tab label="Fashnion" />
-                <Tab label="Electronics" />
-                <Tab label="Bags" />
-                <Tab label="Footwear" />
-                <Tab label="Groceries" />
-                <Tab label="Beauty" />
-                <Tab label="Wellness" />
-                <Tab label="Jewellery" />
-              </Tabs>
+                <Tabs
+                  value={value}
+                  onChange={handleChange}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  aria-label="scrollable auto tabs example"
+                  className="w-full"
+                >
+                  {context?.catData?.length !== 0 &&
+                    context?.catData.map((cat, index) => {
+                      return (
+                        <Tab
+                          key={cat?._id || index}
+                          label={cat?.name}
+                          className="!text-sm md:!text-base"
+                          onClick={() => filterByCatId(cat?._id)}
+                        />
+                        // <Tab label={cat?.name} className="!text-sm md:!text-base" onClick={filterByCatId(cat?._id)} />
+                      );
+                    })}
+
+                  {/* <Tab label="West Wear" className="!text-sm md:!text-base" />
+        <Tab label="Co-Ords" className="!text-sm md:!text-base" /> */}
+                </Tabs>
+              </Box>
             </div>
           </div>
+          
+          {
+            popularproductsData?.length===0 &&   <ProductLoading/>
+          }
 
-          <ProductsSlider items={6} />
+          {popularproductsData?.length !== 0 && (
+            <ProductSlider items={5} data={popularproductsData} />
+          )}
         </div>
       </section>
 
-      <section className="py-16 pt-2 bg-white">
+      <section className="py-16 bg-white  ">
         <div className="container">
-          <div className="freeShipping w-[80%] m-auto py-4 p-4 border-2 border-[#ff5252] flex items-center justify-between rounded-md mb-4">
-            <div className="col1 flex items-center gap-4">
-              <LiaShippingFastSolid className="text-[50px]" />
-              <span className="text-[20px] font-[600] uppercase">
-                Free Shipping
-              </span>
-            </div>
-            <div className="col2">
-              <p className="mb-0 font-[500]">
-                Free Delivery Now On Your First Order and over $200
-              </p>
-            </div>
-            <p className="font-bold text-[25px]">- Only $200*</p>
-          </div>
-
-          <AdsBannerSliderV2 items={4} />
+          <AdsBannerSlider items={4} />
         </div>
       </section>
-
-      <section className="py-5 bg-white pt-0">
-        <div className="container">
-          <h2 className="text-[20px] font-[600]">Latest Products</h2>
-
-          <ProductsSlider items={6} />
-
-          <AdsBannerSlider items={3} />
-        </div>
-      </section>
-
-      <section className="py-5 bg-white pt-0">
-        <div className="container">
-          <h2 className="text-[20px] font-[600]">Featured Products</h2>
-
-          <ProductsSlider items={6} />
-
-          <AdsBannerSlider items={3} />
-        </div>
-      </section>
-
-      <section className="py-5  pb-8 bg-white blogSection pt-0">
-        <div className="container">
-          <h2 className="text-[20px] font-[600] mb-4">From The Blog</h2>
-
-          <Swiper
-            slidesPerView={4}
-            spaceBetween={30}
-            navigation={true}
-            modules={[Navigation]}
-            className="mySwiper"
-          >
-            <SwiperSlide>
-              <BlogItem />
-            </SwiperSlide>
-
-            <SwiperSlide>
-              <BlogItem />
-            </SwiperSlide>
-
-            <SwiperSlide>
-              <BlogItem />
-            </SwiperSlide>
-
-            <SwiperSlide>
-              <BlogItem />
-            </SwiperSlide>
-
-            <SwiperSlide>
-              <BlogItem />
-            </SwiperSlide>
-          </Swiper>
-        </div>
-      </section>
-    </>
+    </div>
   );
 };
 
 export default Home;
+
+
+
+

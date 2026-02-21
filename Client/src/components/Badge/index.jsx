@@ -1,17 +1,13 @@
-import React from "react";
+import React from 'react'
 
 const Badge = (props) => {
   return (
-    <span
-      className={`inline-block  py-1 px-3 rounded-full text-[12px] capitalize 
-        ${props.status === "pending" ? "!bg-primary !text-white" : ""}
-        ${props.status === "confirm" ? "!bg-green-500 !text-white" : ""}
-        ${props.status === "delivered" ? "!bg-green-700 !text-white" : ""}
-        `}
-    >
-      {props.status}
-    </span>
-  );
-};
+    <>
+     <span className={`inline-block py-1 px-2 rounded-full text-[13px] capitalize ${props.status === 'pending' && 'bg-red-600 text-white'} ${props.status === 'confirmed' && 'bg-green-600 text-white'} ${props.status === 'delivered' && 'bg-orange-600 text-white'}`}>{props.status}</span> 
+    </>
+  )
+}
 
 export default Badge;
+
+

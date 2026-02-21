@@ -4,21 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-
-  theme: {
-    extend: {
-      colors: {
-        primary: '#ff5252'
-      },
-      backgroundColor:{
-        primary: '#ff5252'
-      },
-      }
-    },
   plugins: [react(), tailwindcss()],
-  
-  server: {
-    port: 5175,
-  }
-
+  optimizeDeps: {
+    include: ['react-icons']
+  },
+  build: {
+     chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      external: [],
+    },
+  },
 })

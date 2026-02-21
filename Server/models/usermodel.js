@@ -11,14 +11,16 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, "Provide password"]
+        required: function() {
+            return !this.signUpWithGoogle;
+        }
     },
     avatar: {
         type: String,
         default : ""
     },
     mobile: {
-        type: Number,
+        type: String,
         default: null
     },
     verify_email: {
@@ -48,12 +50,16 @@ const userSchema = mongoose.Schema({
         ref: 'address'
       }  
     ],
-    shopping_cart: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'cartProduct'
-      }
-    ],
+
+
+    // shopping_cart: [
+    //   {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'cartProduct'
+    //   }
+    // ],
+
+    
     orderHistory: [
         {
             type: mongoose.Schema.ObjectId,
@@ -68,8 +74,16 @@ const userSchema = mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['ADMIN', 'USER'],
+        enum: ['ADMIN', 'USER', 'PRODUCT_UPLOADER'],
         default: "USER"
+    },
+    signUpWithGoogle:{
+        type:Boolean,
+        default: false
+    },
+    forgotPasswordVerified:{
+        type:Boolean,
+        default: false
     }
 },
     { timestamps: true }
@@ -79,3 +93,4 @@ const userSchema = mongoose.Schema({
 const UserModel = mongoose.model('User', userSchema);
     
 export default UserModel ;
+

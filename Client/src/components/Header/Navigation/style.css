@@ -5,47 +5,8 @@
 .nav li .submenu li:hover button{color:#ff5252 !important;}
 .nav li .submenu li .submenu{top:0px !important ; left:120% !important; opacity: 0 !important;}
 .nav li .submenu li:hover .submenu{left:100% !important; opacity: 1 !important;}
-.nav li .submenu li .submenu button{color: rgba(0,0,0,0.8) !important;}
-.nav li .submenu li .submenu button:hover{color:#ff5252 !important;}
+.nav li .submenu li .submenu button{color:black !important;}
+.nav li .submenu li:hover .submenu button:hover{color:#ff5252 !important;}
 
-/* Sidebar node indentation (ADDED BECAUSE THE SAMPLE WEB PAGE HAD IDENTED DISPLAY  ) */
-.level-1 { padding-left: 0 !important; }
-.level-2 { padding-left: 24px !important; }
-.level-3 { padding-left: 48px !important; }
+.isActive { color: #ff5252 !important; font-weight: bold !important; }
 
-/* Sidebar hover color for leaf links */
-.submenu li:hover .link,
-.submenu .inner_submenu li:hover .link {
-  color: #ff5252 !important;
-}
-
-/* Sidebar alignment for link/button at all levels */
-.level-1 > a,
-.level-2 > a,
-.level-3 > a,
-.level-1 > a > button,
-.level-2 > a > button,
-.level-3 > a > button {
-  justify-content: flex-start !important;
-  text-align: left !important;
-  width: 100% !important;
-  display: flex;
-}
-
-/* Font size and weight by tree level */
-.level-1 > a,
-.level-1 > a > button {
-  font-size: 14px !important;
-  font-weight: 550 !important;
-}
-.level-2 > a,
-.level-2 > a > button {
-  font-size: 14px !important;
-  font-weight: 520 !important;
-}
-.level-3 > a,
-.level-3 > a > button,
-.level-3 .link {
-  font-size: 14px !important;
-  font-weight: 450 !important;
-}

@@ -16,7 +16,6 @@ async function connectDB() {
     }
 }
 
-console.log("Loaded URI:", process.env.MONGODB_URI);
-
 
 export default connectDB;
+

@@ -1,184 +1,277 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import { IoMdEye, IoMdEyeOff } from "react-icons/io";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import { MyContext } from "../../context/MyContext";
-import { postData } from "../../utils/api";
+import { MyContext } from "../../App";
+import CircularProgress from "@mui/material/CircularProgress";
+import { postData, fetchDataFromApi } from "../../Utils/Api";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseApp } from "../../firebase";
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
 
 const Login = () => {
-  const [isPasswordShow, setIsPasswordShow] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isShowPassword, setIsShowPassword] = useState(false);
   const [formFields, setFormFields] = useState({
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Destructure context values
-  const { setUserData, openAlertBox, setIsLogin } = useContext(MyContext);
-  const navigate = useNavigate();
+  const context = useContext(MyContext);
+  const history = useNavigate();
 
-  const onChange = (e) => {
+
+useEffect(() => {
+  
+window.scrollTo(0,0)
+
+}, [])
+
+
+
+  const forgotPassword = () => {
+    if (formFields.email === "") {
+      context.alertBox("error", "Please enter email id");
+      return false;
+    } else {
+      localStorage.setItem("userEmail", formFields.email);
+      localStorage.setItem("actionType", 'forgot-password');
+      postData("/api/user/forgot-password",{
+        email: formFields.email,
+      }).then((res) => {
+        if(res?.error === false){
+          context.alertBox("success", res?.message);
+
+          history('/verify')
+        }else{
+          context.alertBox("error",res?.message);
+        }
+      })
+
+    }
+  };
+
+  const onchangeInput = (e) => {
     const { name, value } = e.target;
-    setFormFields((prev) => ({ ...prev, [name]: value }));
+    setFormFields(() => {
+      return {
+        ...formFields,
+        [name]: value,
+      };
+    });
   };
 
-  const forgotPassword = async () => {
-    // openAlertBox("success", "Redirecting to Forgot Password");
-    // navigate("/forgot-password");
-    if (!formFields.email.trim()) {
-      openAlertBox("error", "Please enter email id");
-      return;
-    }
-    try {
-      const res = await postData("/api/user/forgot-password", { email: formFields.email });
-      if (res && res.success) {
-        openAlertBox("success", res.message || `OTP sent to ${formFields.email}`);
-        navigate('/verify', { state: { email: formFields.email, actionType: 'forgot-password' } });
-      } else {
-        openAlertBox("error", res.message || "Failed to dend OTP");
-      }
-    } catch (err) {
-      console.error(err);
-      openAlertBox("error", "Verification failed. Try again.");
-    } finally {
-      setIsLoading(false);
-    }
+  const valideValue = Object.values(formFields).every((el) => el);
 
+  const authWithGoogle = () => {
+    signInWithPopup(auth, googleProvider)
+      .then((result) => {
+        // This gives you a Google Access Token. You can use it to access the Google API.
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        // The signed-in user info.
+        const user = result.user;
+        const fields = {
+          name: user.providerData[0].displayName,
+          email: user.providerData[0].email,
+          password: null,
+          avatar: user.providerData[0].photoURL,
+          mobile: user.providerData[0].phoneNumber,
+          role: "USER"
+        };
+
+        postData("/api/user/authWithGoogle", fields).then((res) => {
+          if (res?.error !== true) {
+            setIsLoading(false);
+            context.alertBox("success", res?.message);
+            localStorage.setItem("userEmail", fields.email);
+            localStorage.setItem("accessToken", res?.data?.accessToken);
+            localStorage.setItem("refreshToken", res?.data?.refreshToken);
+
+            context.setIsLogin(true);
+
+            // Fetch user details after login
+            fetchDataFromApi("/api/user/user-details").then((userRes) => {
+              if (userRes?.success) {
+                context.setUserData(userRes?.data);
+              } else {
+                // If fetching user details fails, alert but keep login state
+                context.alertBox("error", "Failed to fetch user details.");
+              }
+            }).catch((error) => {
+              // If fetching user details fails, alert but keep login state
+              context.alertBox("error", "Failed to fetch user details.");
+            });
+
+            history("/");
+          } else {
+            context.alertBox("error", res?.message);
+            setIsLoading(false);
+          }
+        });
+        // IdP data available using getAdditionalUserInfo(result)
+        // ...
+      }).catch((error) => {
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // The email of the user's account used.
+        const email = error.customData.email;
+        // The AuthCredential type that was used.
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        // ...
+      });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formFields.email.trim() || !formFields.password.trim()) {
-      openAlertBox("error", "Please enter email and password");
-      return;
+    if (formFields.email === "") {
+      context.alertBox("error", "Please enter email id ");
+      return false;
+    }
+
+    if (formFields.password === "") {
+      context.alertBox("error", "Please enter password ");
+      return false;
     }
 
     setIsLoading(true);
 
-    try {
-      const res = await postData("/api/user/login", formFields, {
-        withCredentials: true,
-      });
+    postData("/api/user/login", formFields, { withCredentials: true })
+      .then((res) => {
+        if (res?.error !== true) {
+          setIsLoading(false);
+          context.alertBox("success", res?.message);
+          localStorage.setItem("userEmail", formFields.email);
+          setFormFields({
+            email: "",
+            password: "",
+          });
 
-      if (res?.success) {
-        openAlertBox("success", res.message || "Login successful");
+          localStorage.setItem("accessToken", res?.data?.accessToken);
+          localStorage.setItem("refreshToken", res?.data?.refreshToken);
 
-        setIsLogin(true);
+          context.setIsLogin(true);
 
-        if (res?.data?.accessToken) {
-          localStorage.setItem("accessToken", res.data.accessToken);
-          localStorage.setItem("refreshToken", res.data.refreshToken);
+          // Fetch user details after login
+          fetchDataFromApi("/api/user/user-details").then((userRes) => {
+            if (userRes?.success) {
+              context.setUserData(userRes?.data);
+            } else {
+              // If fetching user details fails, alert but keep login state
+              context.alertBox("error", "Failed to fetch user details.");
+            }
+          }).catch((error) => {
+            // If fetching user details fails, alert but keep login state
+            context.alertBox("error", "Failed to fetch user details.");
+          });
+
+          history("/");
+        } else {
+          context.alertBox("error", res?.message);
+
+          setIsLoading(false);
         }
-
-        setUserData({
-          _id: res?.data?.user?._id,  // ⬅️ CRITICAL: Include user ID
-          name: res?.data?.user?.name,
-          email: res?.data?.user?.email,
-          avatar: res?.data?.user?.avatar || "",
-        });
-
-        navigate("/");
-      } else {
-        openAlertBox("error", res?.message || "Login failed");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      openAlertBox("error", "Something went wrong. Try again.");
-    } finally {
-      setIsLoading(false);
-    }
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        context.alertBox("error", "Login failed. Please try again.");
+      });
   };
 
   return (
-    <section className="section py-10">
-      <div className="container">
-        <div className="card shadow-md w-[400px] m-auto rounded-md bg-white p-5 px-10">
-          <h3 className="text-center text-[18px] text-black">
-            Login to your account
-          </h3>
-
-          <form className="w-full mt-5" onSubmit={handleSubmit}>
-            <div className="form-group w-full mb-5">
-              <TextField
-                type="email"
-                name="email"
-                label="Email Id *"
-                className="w-full"
-                value={formFields.email}
-                onChange={onChange}
-              />
-            </div>
-
-            <div className="form-group w-full mb-5 relative">
-              <TextField
-                name="password"
-                label="Password *"
-                type={isPasswordShow ? "text" : "password"}
-                className="w-full"
-                value={formFields.password}
-                onChange={onChange}
-              />
+    <>
+      <section className="section py-10">
+        <div className="container flex items-center justify-center ">
+          <div className="card shadow-md w-full max-w-[500px] m-auto rounded-md bg-white p-5 px-4 md:px-10 ">
+            <h3 className="text-center text-[20px] text-black font-[500]">
+              Login to your account
+            </h3>
+            <form action="" className="w-full !mt-5" onSubmit={handleSubmit}>
+              <div className="form-group w-full !mb-5">
+                <TextField
+                  type="email"
+                  id="email"
+                  label="Email id"
+                  variant="outlined"
+                  className="w-full"
+                  name="email"
+                  value={formFields.email}
+                  disabled={isLoading === true ? true : false}
+                  onChange={onchangeInput}
+                />
+              </div>
+              <div className="form-group w-full !mb-5 relative">
+                <TextField
+                  id="password"
+                  type={isShowPassword === false ? "password" : "text"}
+                  label="Password"
+                  variant="outlined"
+                  className="w-full"
+                  name="password"
+                  value={formFields.password}
+                  disabled={isLoading === true ? true : false}
+                  onChange={onchangeInput}
+                />
+                <Button
+                  className="!absolute !top-[5px] !right-[5px] z-50 !w-[35px] !h-[35px] !min-w-[35px] !rounded-full !text-black"
+                  onClick={() => setIsShowPassword(!isShowPassword)}
+                >
+                  {isShowPassword === false ? (
+                    <AiOutlineEye className="text-[20px] opacity-75" />
+                  ) : (
+                    <AiOutlineEyeInvisible className="text-[20px] opacity-75" />
+                  )}
+                </Button>
+              </div>
 
               <Button
-                type="button"
-                onClick={() => setIsPasswordShow(!isPasswordShow)}
-                className="!absolute top-[8px] right-[8px] !w-[35px] !h-[35px]"
+                className="link cursor-pointer text-[14px] font-[600] !p-0 !min-w-0 !bg-transparent !text-black hover:!bg-transparent"
+                onClick={forgotPassword}
               >
-                {isPasswordShow ? (
-                  <IoMdEye className="text-[22px]" />
-                ) : (
-                  <IoMdEyeOff className="text-[22px]" />
-                )}
+                Forgot Password
               </Button>
-            </div>
 
-            <button
-              type="button"
-              onClick={forgotPassword}
-              className="link cursor-pointer text-[15px] font-[600] mb-3"
-            >
-              Forgot Password?
-            </button>
+              <div className="flex items-center w-full !mt-3">
+                <Button
+                  className=" !text-white !bg-orange-600 hover:!bg-black w-full !text-[18px] !p-3 flex gap-3"
+                  type="submit"
+                  disabled={!valideValue}
+                >
+                  {isLoading === true ? (
+                    <CircularProgress color="inherit" />
+                  ) : (
+                    "Login"
+                  )}
+                </Button>
+              </div>
 
-            <Button
-              className="btn-org w-full btn-lg mt-3"
-              type="submit"
-              disabled={isLoading}
-              startIcon={isLoading && <CircularProgress size={18} />}
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
+              <p className="text-center">
+                Not Registered?{" "}
+                <Link
+                  className="link text-[14px] font-[600] text-orange-600"
+                  to="/register"
+                >
+                  Sign Up
+                </Link>
+              </p>
 
-            <p className="text-center mt-3">
-              Not Registered?{" "}
-              <Link
-                className="text-[14px] font-[600] text-primary"
-                to="/register"
-              >
-                Sign Up
-              </Link>
-            </p>
-
-            <p className="text-center font-[500] mt-2">
-              Or continue with social account
-            </p>
-
-            <Button
-              disabled={isLoading}
-              className="flex gap-3 w-full !bg-[#f1f1f1] btn-lg !text-black mt-2"
-              type="button"
-            >
-              <FcGoogle className="text-[20px]" />
-              Login with Google
-            </Button>
-          </form>
+              <p className="text-center font-[500]">
+                Or continue with social account
+              </p>
+              <Button className="flex gap-3 w-full !bg-[#f1f1f1] !text-[18px] !p-3" onClick={authWithGoogle}>
+                <FcGoogle className="text-[20px]" />
+                Login with Google
+              </Button>
+            </form>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 

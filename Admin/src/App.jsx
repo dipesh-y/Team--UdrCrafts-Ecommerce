@@ -1,131 +1,52 @@
-import React, { createContext, useState,useEffect, useContext } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
-import MyContext from "./context/MyContext";
+import React, { useContext, lazy, Suspense } from 'react'
 import "./App.css";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp"; 
-import Product from "./pages/Products";
-import AddProduct from "./pages/Products/addProduct";
-import { AppBar, Dialog, IconButton, Slide, Toolbar } from "@mui/material";
-import { FaDoorClosed } from "react-icons/fa6";
-import Typography from '@mui/material/Typography';
-import Dashboard from "./pages/Dashboard/Index";
-import HomeSliderBanners from "./pages/HomeSliderBanners";
-import AddHomeSlide from "./pages/HomeSliderBanners/addHomeSlide";
-import CategoryList from "./pages/Category";
-import AddCategory from "./pages/Category/addCategory";
-import SubCategoryList from "./pages/Category/subCatList";
-import AddSubCategory from "./pages/Category/addSubCategory";
-import Users from "./pages/Users";
-import Orders from "./pages/Orders";
-import ForgotPassword from "./pages/ForgotPassword";
-import VerifyAccount from "./pages/VerifyAccount";
-import ChangePassword from "./pages/ChangePassword";
-import OtpBox from "./components/OtpBox";
-import { TbCodeAsterisk } from "react-icons/tb";
-import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL;
-import toast, { Toaster } from "react-hot-toast";
-import Profile from "./pages/Profile";
-import AddAddress from "./pages/Address/addAddress";
-import EditCategory from "./pages/Category/editCategory";
+import './respo.css'
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+const Dashboard = lazy(() => import("./pages/Dashboard/Index.jsx"));
+const Header = lazy(() => import("./Components/Header/Index.jsx"));
+const Sidebar = lazy(() => import("./Components/Sidebar/Index.jsx"));
+import { createContext, useState } from "react";
+const Login = lazy(() => import("./pages/Login/index.jsx"));
+const SignUp = lazy(() => import("./pages/Signup/index.jsx"));
+const Products = lazy(() => import("./pages/Products/Index.jsx"));
 
-// ---- MOVED OUTSIDE App ----{Resolved Error}
-// {Because there was an error comming : that after edit/upload the category page become non responsive freezes}
+import toast, {Toaster} from 'react-hot-toast';
+import Slide from '@mui/material/Slide';
+const Users = lazy(() => import('./pages/Users/Index.jsx'));
+const Orders = lazy(() => import('./pages/Orders/Index.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword/index.jsx'));
+const VerifyAccount = lazy(() => import('./pages/VerifyAccount/index.jsx'));
+const ChangePassword = lazy(() => import('./pages/ChangePassword/index.jsx'));
+import { fetchDataFromApi } from '../Utils/Api.js';
+import { useEffect } from 'react';
+const Profile = lazy(() => import('./pages/Profile/index.jsx'));
+const CategoryList = lazy(() => import('./pages/Categegory/Index.jsx'));
+const SubCatList = lazy(() => import('./pages/Categegory/SubCatList.jsx'));
+const ProductDetails = lazy(() => import('./pages/Products/productDetails.jsx'));
 
-const Transition = React.forwardRef(function Transition(props, ref) {
+const AddSize = lazy(() => import('./pages/Products/addSize.jsx'));
+const HomeSliderBanner = lazy(() => import('./pages/HomeSliderBanners/Index.jsx'));
+
+
+
+
+
+   const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const MainLayout = ({ children }) => {
-  const { isSidebarOpen, toggleSidebar } = useContext(MyContext);
-  return (
-    <section className="main">
-      <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-      <div className="contentMain flex">
-        <div
-          className={`sidebarWrapper transition-all duration-300 ${
-            isSidebarOpen ? "w-[18%]" : "w-0 opacity-0"
-          }`}
-        >
-          <Sidebar toggleSidebar={toggleSidebar} />
-        </div>
+const alertBox = (status, msg)=>{
 
-        <div
-          className={`contentRight py-5 px-5 transition-all duration-300 ${
-            isSidebarOpen ? "w-[82%]" : "w-full"
-          }`}
-        >
-          {children}
-        </div>
-      </div>
-    </section>
-  );
-};
+    if(status.toLowerCase()==="success"){
+      toast.success(msg);
+    }
+    if(status.toLowerCase()==="error"){
+      toast.error(msg);
+    }
 
-const router = createBrowserRouter([
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/sign-up",
-    element: <SignUp />,
-  },
-  {
-    path: "/forgot-password",
-    element: <ForgotPassword />,
-  },
-  
-  {
-    path: "/verify-account",
-    element: <VerifyAccount />,
-  },
-  {
-    path: "/change-password",
-    element: <ChangePassword />,
-  },
-  {
-    path: "/", 
-    element: <MainLayout><Dashboard /></MainLayout>,
-  },
-  {
-    path: "/products", 
-    element: <MainLayout><Product /></MainLayout>,
-  },
-  {
-    path: "/product/upload",
-    exact:true,
-    element:(
-      <>
-      <AddProduct/>
-      </>
-    ),
-  },
-  {
-    path: "/homeSlider/list", 
-    element: <MainLayout><HomeSliderBanners /></MainLayout>,
-  },
-  {
-    path: "/category/list", 
-    element: <MainLayout><CategoryList /></MainLayout>,
-  },
-  {
-    path: "/subCategory/list", 
-    element: <MainLayout><SubCategoryList /></MainLayout>,
-  },
-  {
-    path: "/users", 
-    element: <MainLayout><Users /></MainLayout>,
-  },
-  {
-    path: "/profile", 
-    element: <MainLayout><Profile /></MainLayout>,
-  },
-   
-]);
+  }
+
+export const MyContext = createContext();
 
 function createData(
   id,
@@ -139,25 +60,26 @@ function createData(
   return { id, name, category, subCategory, oldPrice, newPrice, stock };
 }
 
-// ---- END MOVED OUTSIDE App ----
-
-const App = () => {
+function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLogin, setIsLogin] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [address, setAddress] = useState([]);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [userData, setUserData]= useState(null);
+  const [address, setAddress]= useState([]);
+  const [catData, setCatData]= useState([]);
+  const [windowWidth, setWindowWidth]= useState(window.innerWidth);
+  const [sidebarWidth, setSidebarWidth]= useState(18);
 
   const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
-    model : "",
-    id:""
+    id : ""
   });
+   const [isOpenFullScreenPanel2 , setIsOpenFullScreenPanel2] = useState({
+    open: false,
+    id : ""
+  });
+  
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
-
-  const [productRows, setProductRows] = useState([ 
+  const [productRows, setProductRows] = useState([
     createData(
       1,
       "Vegetable Steamer for Cooking",
@@ -277,128 +199,514 @@ const App = () => {
     ),
   ]);
 
- const alertBox=(type,msg)=>{
-  if(type==='success'){
-    toast.success(msg);
-  }
-  if(type==='error'){
-    toast.error(msg);
-  }
- }
+const context = useContext(MyContext)
+
+  const router = createBrowserRouter([
+
+{
+  path: "/",
+  exact: true,
+  element: (
+    <>
+      <section className="main">
+        <Header />
+        {/* Parent div should ALWAYS have 'flex' */}
+        <div className={`contentMain flex w-full relative`}>
+          {/* Overlay for mobile - only covers content, not header */}
+          {isSidebarOpen && (
+            <div
+              className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+          <div 
+            className={`sidebarWrapper ${
+              isSidebarOpen === true 
+                ? 'w-[60%] sm:w-[23%]' 
+                : 'w-0'
+            } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+          >
+            <Sidebar />
+          </div>
+
+          <div 
+            className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+          >
+            <Dashboard />
+          </div>
+        </div>
+      </section>
+    </>
+  )
+},
+    {
+      path: "/login",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Login />
+          </section>
+        </>
+      ),
+    },
+    {
+      path: "/forgot-password",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <ForgotPassword />
+          </section>
+        </>
+      ),
+    },
+
+    {
+      path: "/verify-account",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <VerifyAccount />
+          </section>
+        </>
+      ),
+    },
+
+    {
+      path: "/change-password",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <ChangePassword />
+          </section>
+        </>
+      ),
+    },
+
+    {
+      path: "/signup",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <SignUp />
+          </section>
+        </>
+      ),
+    },
+
+    {
+      path: "/products",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <Products />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+     {
+      path: "/homeSlider/list",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <HomeSliderBanner />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+      {
+      path: "/category/list",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <CategoryList />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+      {
+      path: "/subCategory/list",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <SubCatList />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+      {
+      path: "/users",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <Users />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+      {
+      path: "/orders",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <Orders />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+  {
+      path: "/profile",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <Profile />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+ {
+      path: "/product/:id",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <ProductDetails />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+     {
+      path: "/product/addSize",
+      exact: true,
+      element: (
+        <>
+          <section className="main">
+            <Header />
+            <div className="contentMain flex w-full relative">
+              {/* Overlay for mobile - only covers content, not header */}
+              {isSidebarOpen && (
+                <div
+                  className="absolute inset-0 bg-black/50 z-[40] sm:hidden"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              )}
+              <div
+                className={`sidebarWrapper ${
+                  isSidebarOpen === true
+                    ? 'w-[60%] sm:w-[23%]'
+                    : 'w-0'
+                } transition-all duration-300 overflow-hidden flex-shrink-0 relative z-[41]`}
+              >
+                <Sidebar />
+              </div>
+              <div
+                className={`contentRight py-4 px-4 sm:px-5 flex-1 overflow-auto transition-all duration-300`}
+              >
+                <AddSize />
+              </div>
+            </div>
+          </section>
+        </>
+      ),
+    },
+
+  ]);
+
+useEffect(()=>{
+     const token= localStorage.getItem('adminAccessToken');
+     if(token!==undefined && token!==null && token !==""){
+       setIsLogin(true)
+
+       fetchDataFromApi(`/api/admin/auth/user-details`).then((res)=>{
+
+           if(res?.success){
+             setUserData(res?.data);
+           } else if(res?.message === "You have not login" || res?.message === "jwt expired" || res?.message === "Invalid token"){
+             localStorage.removeItem('adminAccessToken');
+             localStorage.removeItem('adminRefreshToken');
+             setUserData(null);
+             alertBox("error","Your session is closed please login again")
+             window.location.href="/login";
+           }
+
+       });
+
+     }else{
+       setIsLogin(false)
+       setUserData(null);
+     }
+   },[])// Remove [isLogin] to prevent infinite loop
+
+    useEffect(()=>{
+      fetchDataFromApi("/api/category").then((res)=>{
+        setCatData(res?.data)
+      })
+    }, [])
+
+useEffect(() => {
+  const handleResize = () => {
+    setWindowWidth(window.innerWidth);
+  };
+
+window.addEventListener("resize",handleResize)
+
+return ()=>{
+  window.removeEventListener("resize",handleResize);
+};
+
+
+}, [])
+
+useEffect(()=>{
+if(windowWidth < 992){
+  setIsSidebarOpen(false);
+  setSidebarWidth(100)
+}else{
+  setSidebarWidth(18)
+}
+},[windowWidth])
+
 
   const values = {
     isSidebarOpen,
     setIsSidebarOpen,
-    toggleSidebar,
     isLogin,
     setIsLogin,
+    productRows,
+    setProductRows,
     isOpenFullScreenPanel,
     setIsOpenFullScreenPanel,
-    productRows,
+   isOpenFullScreenPanel2,
+ setIsOpenFullScreenPanel2,
     alertBox,
-    userData,
     setUserData,
-    setAddress,
+    userData,
     address,
-    refreshKey,
-    triggerRefresh,
+    setAddress,
+    setCatData,
+    catData,
+    windowWidth, 
+    setWindowWidth,
+    sidebarWidth, 
+    setSidebarWidth,
   };
-
-useEffect(() => {
-  const token = localStorage.getItem("accessToken");
-
-  if (!token) {
-    setIsLogin(false);
-    setUserData(null);
-    return;
-  }
-
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get(
-        `${API_URL}/api/user/user-details`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (res.data.success) {
-        setUserData(res.data.data);
-        setIsLogin(true);
-      }
-    } catch (err) {
-      setUserData(null);
-      setIsLogin(false);
-    }
-  };
-
-  fetchUser();
-}, []);
-
-
 
   return (
-    <MyContext.Provider value={values}>
-      <RouterProvider router={router} />
-        <Dialog
-        fullScreen
-        open={isOpenFullScreenPanel.open}
-        onClose={()=>setIsOpenFullScreenPanel({
-          open: false,
-        })}
-        slots={{
-          transition: Transition,
-        }}
-      >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={()=>setIsOpenFullScreenPanel({
-                open: false,
-              })}
-              aria-label="close"
-            >
-              <FaDoorClosed   />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              {isOpenFullScreenPanel ?.model}
-            </Typography>
-         
-          </Toolbar>
-        </AppBar>
-     
-        {
-          isOpenFullScreenPanel ?.model === "Add Product" && <AddProduct/>
-        }
-       
-       {
-          isOpenFullScreenPanel ?.model === "Add Home Slide" && <AddHomeSlide/>
-        }
-          {
-          isOpenFullScreenPanel ?.model === "Add New Category" && <AddCategory/>
-        }
+    <>
+      <MyContext.Provider value={values}>
+        <RouterProvider router={router} />
 
-         {
-          isOpenFullScreenPanel ?.model === "Add New Sub Category" && <AddSubCategory/>
-        }
-
-        {
-          isOpenFullScreenPanel ?.model === "Add New Address" && <AddAddress/>
-        }
-        
-        {
-          isOpenFullScreenPanel ?.model === "Edit Category" && <EditCategory/>
-        }
-      </Dialog>
       
-      <Toaster/>
 
-    </MyContext.Provider>
+        <Toaster/>
+
+      </MyContext.Provider>
+    </>
   );
-};
+}
 
 export default App;
+

@@ -1,164 +1,248 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import { Link, useNavigate } from "react-router-dom";
+import { TbEyeglass2 } from "react-icons/tb";
+import { TbEyeglassOff } from "react-icons/tb";
+import { Link } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import { postData } from "../../utils/api";
-import { MyContext } from "../../context/MyContext";
+import { postData, fetchDataFromApi } from "../../Utils/Api";
+import { MyContext } from "../../App";
+import CircularProgress from '@mui/material/CircularProgress';
+import { FaS } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
+
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseApp } from "../../firebase";
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+
+
+
 
 const Register = () => {
-  const [isPasswordShow, setIsPasswordShow] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading]= useState(false)
+  const [isShowPassword, setIsShowPassword] = useState(false);
+ const [formFields, setFormFields]= useState({
+   name:"",
+   email : "",
+   password : ""
+ })
 
-  const [formFields, setFormFields] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const context = useContext(MyContext)
+  const history = useNavigate();
 
-  const context = useContext(MyContext);
-  const navigate = useNavigate();
 
-  const onChangeInput = (e) => {
-    const { name, value } = e.target;
-    setFormFields((prev) => ({ ...prev, [name]: value }));
-  };
+  useEffect(() => {
+    
+  window.scrollTo(0,0)
+  
+  }, [])
 
-  const isFormValid = Object.values(formFields).every(
-    (el) => el.trim() !== ""
-  );
+ const onchangeInput=(e)=>{
+  const {name, value}= e.target;
+  setFormFields(()=>{
+    return{
+      ...formFields,
+      [name]: value
+    }
+  })
+ }
 
-  const handleSubmit = async (e) => {
+ const valideValue = Object.values(formFields).every(el => el)
+
+ const handleSubmit= (e)=>{
   e.preventDefault();
 
-  if (!formFields.name.trim()) {
-    context.openAlertBox("error", "Please enter full name");
-    return;
+
+  if(formFields.name===""){
+    context.alertBox("error","Please enter full name ")
+    return false
   }
 
-  if (!formFields.email.trim()) {
-    context.openAlertBox("error", "Please enter email id");
-    return;
+  if(formFields.email===""){
+    context.alertBox("error","Please enter email id ")
+    return false
   }
 
-  if (!formFields.password.trim()) {
-    context.openAlertBox("error", "Please enter password");
-    return;
+    if(formFields.password===""){
+    context.alertBox("error","Please enter password ")
+    return false
   }
 
   setIsLoading(true);
 
-  try {
-    const response = await postData("/api/user/register", formFields);
+  postData("/api/user/register",formFields).then((res)=>{
 
-    if (response?.success) {
-      context.openAlertBox(
-        "success",
-        "Registration successful. Please verify your email."
-      );
-      navigate("/verify", { state: { email: formFields.email } });
-    } else {
-      context.openAlertBox(
-        "error",
-        response?.message || "Registration failed"
-      );
+    if(res?.error !== true){
+       setIsLoading(false)
+       context.alertBox("success",res?.message)
+       localStorage.setItem("userEmail",formFields.email)
+   setFormFields({
+    name: "",
+    email: "",
+    password:  "",
+   })
+
+     history('/verify')
+
+    }else{
+       context.alertBox("error",res?.message);
+
+       setIsLoading(false)
     }
-  } catch (error) {
-    console.error("Register Error:", error);
-    context.openAlertBox("error", "Something went wrong. Try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  }).catch((error)=>{
+    setIsLoading(true);
+    context.alertBox("error","Registration failed. Please try again.");
+  })
+ }
 
+ const authWithGoogle=()=>{
+
+  signInWithPopup(auth, googleProvider)
+  .then((result) => {
+    // This gives you a Google Access Token. You can use it to access the Google API.
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const token = credential.accessToken;
+    // The signed-in user info.
+    const user = result.user;
+    const fields = {
+      name: user.providerData[0].displayName,
+      email: user.providerData[0].email,
+      password: null,
+      avatar: user.providerData[0].photoURL,
+      mobile:user.providerData[0].phoneNumber,
+      role: "USER"
+    };
+
+    postData("/api/user/authWithGoogle",fields).then((res)=>{
+
+    if(res?.error !== true){
+       setIsLoading(false)
+       context.alertBox("success",res?.message)
+       localStorage.setItem("userEmail",fields.email)
+       localStorage.setItem("accessToken", res?.data?.accessToken);
+       localStorage.setItem("refreshToken", res?.data?.refreshToken);
+
+       context.setIsLogin(true);
+
+       // Fetch user details after login
+       fetchDataFromApi("/api/user/user-details").then((userRes) => {
+         if (userRes?.success) {
+           context.setUserData(userRes?.data);
+         } else {
+           // If fetching user details fails, alert but keep login state
+           context.alertBox("error", "Failed to fetch user details.");
+         }
+       }).catch((error) => {
+         // If fetching user details fails, alert but keep login state
+         context.alertBox("error", "Failed to fetch user details.");
+       });
+
+     history('/')
+
+    }else{
+       context.alertBox("error",res?.message);
+
+       setIsLoading(false)
+    }
+  })
+
+    // IdP data available using getAdditionalUserInfo(result)
+    // ...
+  }).catch((error) => {
+    // Handle Errors here.
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    // The email of the user's account used.
+    const email = error.customData.email;
+    // The AuthCredential type that was used.
+    const credential = GoogleAuthProvider.credentialFromError(error);
+    // ...
+  });
+
+
+ }
 
   return (
-    <section className="section py-10">
-      <div className="container">
-        <div className="card shadow-md w-[400px] m-auto rounded-md bg-white p-5 px-10">
-          <h3 className="text-center text-[18px] text-black">
-            Register with a new account
-          </h3>
+    <>
+      <section className="section py-10 ">
+        <div className="container items-center justify-center flex ">
+          <div className="card shadow-md w-full max-w-[500px] m-auto rounded-md bg-white p-5 px-4 md:px-10 ">
+            <h3 className="text-center text-[20px] text-black font-[500]">
+              Register with a new account
+            </h3>
+            <form action="" className="w-full !mt-5" onSubmit={handleSubmit}>
+               <div className="form-group w-full !mb-5">
+                <TextField
+                  type="text"
+                  id="name"
+                  value={formFields.name}
+                  disabled={isLoading=== true ? true : false}
+                  name ="name"
+                  label="Full Name "
+                  variant="outlined"
+                  className="w-full"
+                  onChange={onchangeInput}
+                />
+              </div>
+              <div className="form-group w-full !mb-5">
+                <TextField
+                  type="email"
+                  id="email"
+                  name="email"
+                  label="Email id"
+                  value={formFields.email}
+                    disabled={isLoading=== true ? true : false}
+                  variant="outlined"
+                  className="w-full"
+                  onChange={onchangeInput}
+                />
+              </div>
+              <div className="form-group w-full !mb-5 relative">
+                <TextField
+                  id="password"
+                  type={isShowPassword=== false ? 'password' : 'text'}
+                  label="Password "
+                  name="password"
+                  value={formFields.password}
+                    disabled={isLoading=== true ? true : false}
+                  variant="outlined"
+                  className="w-full"
+                  onChange={onchangeInput}
+                />
+                <Button
+                  className="!absolute !top-[5px] !right-[5px] z-50 !w-[35px] !h-[35px] !min-w-[35px] !rounded-full !text-black"
+                  onClick={() => setIsShowPassword(!isShowPassword)}
+                >
+                  {isShowPassword === false ? (
+                    <TbEyeglass2 className="text-[40px] opacity-75" />
+                  ) : (
+                    <TbEyeglassOff className="text-[40px] opacity-75" />
+                  )}
+                </Button>
+              </div>
 
-          <form className="w-full mt-5" onSubmit={handleSubmit}>
-            <div className="form-group w-full mb-5">
-              <TextField
-                name="name"
-                label="Full Name *"
-                className="w-full"
-                value={formFields.name}
-                onChange={onChangeInput}
-              />
+            
+                
+            <div className="flex items-center w-full !mt-3">
+                <Button className=" !text-white !bg-orange-600 hover:!bg-black w-full !text-[18px] !p-3 flex gap-3" type="submit" disabled={!valideValue} >
+                  {
+                    isLoading === true ? <CircularProgress color="inherit"/>
+                    :
+                    'Register'
+                  }
+                  </Button>
             </div>
 
-            <div className="form-group w-full mb-5">
-              <TextField
-                type="email"
-                name="email"
-                label="Email Id *"
-                className="w-full"
-                value={formFields.email}
-                onChange={onChangeInput}
-              />
-            </div>
+            <p className="text-center">Already have an account? <Link className="link text-[14px] font-[600] text-orange-600" to='/login'>Sign in</Link></p>
 
-            <div className="form-group w-full mb-5 relative">
-              <TextField
-                name="password"
-                label="Password *"
-                type={isPasswordShow ? "text" : "password"}
-                className="w-full"
-                value={formFields.password}
-                onChange={onChangeInput}
-              />
-
-              <Button
-                type="button"
-                onClick={() => setIsPasswordShow(!isPasswordShow)}
-                className="!absolute top-[8px] right-[8px] !w-[35px] !h-[35px]"
-              >
-                {isPasswordShow ? (
-                  <IoMdEye className="text-[22px]" />
-                ) : (
-                  <IoMdEyeOff className="text-[22px]" />
-                )}
-              </Button>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading || !isFormValid}
-              className="btn-org w-full btn-lg"
-              startIcon={isLoading && <CircularProgress size={18} />}
-            >
-              {isLoading ? "Registering..." : "Register"}
-            </Button>
-
-            <p className="text-center mt-3">
-              Already have an account?{" "}
-              <Link className="text-primary font-[600]" to="/login">
-                Login
-              </Link>
-            </p>
-
-            <p className="text-center font-[500] mt-2">
-              Or continue with a social account
-            </p>
-
-            <Button
-              disabled={isLoading}
-              className="flex gap-3 w-full !bg-[#f1f1f1] btn-lg !text-black mt-3"
-              type="button"
-            >
-              <FcGoogle className="text-[20px]" />
-              Login with Google
-            </Button>
-          </form>
+            <p className="text-center font-[500]">Or continue with social account</p>
+            <Button className="flex gap-3 w-full !bg-[#f1f1f1] !text-[18px] !p-3  " onClick={authWithGoogle}><FcGoogle className="text-[20px]"  />Register with Google</Button>
+            </form>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 

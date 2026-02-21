@@ -1,26 +1,22 @@
 import React, { useContext, useEffect, useState } from "react";
-import { editData, postData } from "../../utils/api.js";
+import { editData, postData } from "../../Utils/Api.js";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import AccountSidebar from "../../components/AccountSidebar/index.jsx";
+import AccountSidebar from "../../Components/AccountSidebar/index.jsx";
 import { Collapse } from "react-collapse";
-import { MyContext } from "../../context/MyContext";
+import { MyContext } from "../../App";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 
 const MyAccount = () => {
-  const navigate = useNavigate();
-  const { userData, setUserData, openAlertBox, isLogin } =
-    useContext(MyContext);
-
   const [isLoading, setIsLoading] = useState(false);
   const [isLoading2, setIsLoading2] = useState(false);
   const [userId, setUserId] = useState("");
-  const [isChangePasswordFormShow, setIsChangePasswordFormShow] =
+  const [phone, setPhone] = useState("");
+  const [isChangePasswordFormShow, setisChangePasswordFormShow] =
     useState(false);
-      const [phone, setPhone] = useState("");
 
   const [formFields, setFormFields] = useState({
     name: "",
@@ -29,178 +25,196 @@ const MyAccount = () => {
   });
 
   const [changePassword, setChangePassword] = useState({
+    email: "",
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  /* ------------------ AUTH GUARD ------------------ */
+  const context = useContext(MyContext);
+const history =useNavigate();
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (!token) navigate("/login");
-  }, [isLogin, navigate]);
+    if (token === null) {
+      history("/login");
+    }
+  }, [context?.isLogin]);
 
-  /* ------------------ LOAD USER ------------------ */
   useEffect(() => {
-    if (!userData?._id) return;
+    if (context?.userData?._id) {
+      setUserId(context?.userData?._id);
+      setFormFields({
+        name: context?.userData?.name || "",
+        email: context?.userData?.email || "",
+        mobile: context?.userData?.mobile
+          ? String(context?.userData?.mobile)
+          : "",
+      });
+      setChangePassword((prev) => ({
+        ...prev,
+        email: context?.userData?.email || "",
+      }));
+    }
+  }, [context?.userData]);
 
-    setUserId(userData._id);
-    setFormFields({
-      name: userData.name || "",
-      email: userData.email || "",
-      mobile: userData.mobile || "",
-    });
-    setPhone(userData.mobile ? `+${userData.mobile}` : "");
-  }, [userData]);
-
-  /* ------------------ INPUT HANDLER ------------------ */
   const onchangeInput = (e) => {
     const { name, value } = e.target;
 
-    if (name in formFields) {
-      setFormFields((prev) => ({ ...prev, [name]: value }));
+    if (["name", "email", "mobile"].includes(name)) {
+      setFormFields((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
 
-    if (name in changePassword) {
-      setChangePassword((prev) => ({ ...prev, [name]: value }));
+    if (["oldPassword", "newPassword", "confirmPassword"].includes(name)) {
+      setChangePassword((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
-  /* ------------------ VALIDATION ------------------ */
-  const valideProfile =
-    formFields.name && formFields.email && formFields.mobile;
+  const valideValue = Object.values(formFields).every((el) => el);
+  const valideValue2 = Object.values(changePassword).every((el) => el);
 
-  /* ------------------ UPDATE PROFILE ------------------ */
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!valideProfile) {
-      openAlertBox("error", "Please fill all profile fields");
+    if (!valideValue) {
+      context.alertBox("error", "Please fill all profile fields");
       return;
     }
 
     setIsLoading(true);
-    try {
-      const res = await editData(`/api/user/${userId}`, formFields);
 
-      if (!res?.error) {
-        setUserData(res?.data?.user);
-        openAlertBox("success", "Profile updated successfully");
-      } else {
-        openAlertBox("error", res?.data?.message);
-      }
-    } catch {
-      openAlertBox("error", "Profile update failed");
-    } finally {
-      setIsLoading(false);
-    }
+    editData(`/api/user/${userId}`, formFields)
+      .then((res) => {
+        setIsLoading(false);
+        if (res?.error !== true) {
+          context.alertBox("success", res?.data?.message);
+          context.setUserData(res?.data?.user);
+          context.setIsLogin(true);
+        } else {
+          context.alertBox("error", res?.data?.message);
+        }
+      })
+      .catch(() => {
+        setIsLoading(false);
+        context.alertBox("error", "Update failed. Please try again.");
+      });
   };
 
-  /* ------------------ CHANGE PASSWORD ------------------ */
-  const handleSubmitChangePassword = async (e) => {
+  const handleSubmitChangePassword = (e) => {
     e.preventDefault();
 
-    const { oldPassword, newPassword, confirmPassword } = changePassword;
-
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      openAlertBox("error", "All password fields are required");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      openAlertBox("error", "Passwords do not match");
+    if (changePassword.newPassword !== changePassword.confirmPassword) {
+      context.alertBox("error", "Password and Confirm Password do not match");
       return;
     }
 
     setIsLoading2(true);
-    try {
-      const res = await postData(`/api/user/reset-password`, {
-        oldPassword,
-        newPassword,
-      });
 
-      if (!res?.error) {
-        openAlertBox("success", "Password changed successfully");
-        setIsChangePasswordFormShow(false);
-        setChangePassword({
-          oldPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      } else {
-        openAlertBox("error", res?.message);
-      }
-    } catch (err) {
-      openAlertBox(
-        "error",
-        err?.response?.data?.message || "Password change failed"
-      );
-    } finally {
-      setIsLoading2(false);
-    }
+    postData(`/api/user/reset-password`, changePassword)
+      .then((res) => {
+        setIsLoading2(false);
+        if (res?.error !== true) {
+          context.alertBox("success", res?.message);
+          setChangePassword({
+            email: formFields.email,
+            oldPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+        } else {
+          context.alertBox("error", res?.message);
+        }
+      })
+      .catch(() => {
+        setIsLoading2(false);
+        context.alertBox("error", "Password change failed. Try again.");
+      });
   };
 
   return (
     <section className="py-10 w-full">
       <div className="container flex flex-col lg:flex-row gap-5">
-        <div className="w-full lg:w-[20%]">
+        <div className="col1 w-full lg:w-[20%]">
           <AccountSidebar />
         </div>
 
-        <div className="w-full lg:w-[50%]">
-          {/* PROFILE CARD */}
-          <div className="card bg-white p-5 shadow-md rounded-md mb-5">
-            <div className="flex items-center">
-              <h2 className="text-[20px] font-[600]">My Profile</h2>
+        <div className="col2 w-full lg:w-[50%]">
+          <div className="card bg-white p-5 shadow-md rounded-md !mb-5">
+            <div className="flex items-center pb-3">
+              <h2 className="text-[20px] font-[600] pb-0">My Profile</h2>
               <Button
                 className="!ml-auto"
                 onClick={() =>
-                  setIsChangePasswordFormShow((prev) => !prev)
+                  setisChangePasswordFormShow(!isChangePasswordFormShow)
                 }
               >
-                {isChangePasswordFormShow ? "Cancel" : "Change Password"}
+                Change Password
               </Button>
             </div>
-            <hr className="my-4" />
+            <hr />
 
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <TextField
-                  label="Full Name"
-                  name="name"
-                  value={formFields.name}
-                  onChange={onchangeInput}
-                  size="small"
-                  fullWidth
-                />
+            <form className="!mt-8" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 ">
+                <div className="col">
+                  <TextField
+                    label="Full Name"
+                    variant="outlined"
+                    size="small"
+                    className="w-full"
+                    name="name"
+                    value={formFields.name}
+                    disabled={isLoading}
+                    onChange={onchangeInput}
+                  />
+                </div>
 
-                <TextField
-                  label="Email"
-                  value={formFields.email}
-                  disabled
-                  size="small"
-                  fullWidth
-                />
+                <div className="w-[col]">
+                  <TextField
+                    type="email"
+                    label="Email"
+                    variant="outlined"
+                    size="small"
+                    className="w-full"
+                    name="email"
+                    value={formFields.email}
+                    disabled={isLoading}
+                    onChange={onchangeInput}
+                  />
+                </div>
 
-               <PhoneInput
-                  defaultCountry="in"
-                  value={phone}
-                  onChange={(value) => {
-                    setPhone(value);
-                    setFormFields((prev) => ({ ...prev, mobile: value }));
-                  }}
-                  disabled={isLoading}
-                />
+                <div className="col">
+                  <PhoneInput
+                    defaultCountry="in"
+                    value={formFields?.mobile}
+                    disabled={isLoading}
+                    onChange={(phone) => {
+                      setPhone(phone);
+                      setFormFields({
+                        mobile: phone,
+                      });
+                    }}
+                  />
+               
+                </div>
               </div>
 
-              <div className="mt-6">
+              
+
+              <br />
+
+              <div className="flex items-center gap-4">
                 <Button
+                  className="!bg-orange-600 !text-white hover:!bg-black w-[150px] btn"
                   type="submit"
-                  className="!bg-orange-600 !text-white hover:!bg-black"
-                  disabled={isLoading}
+                  disabled={!valideValue}
                 >
                   {isLoading ? (
-                    <CircularProgress size={20} color="inherit" />
+                    <CircularProgress color="inherit" />
                   ) : (
                     "Update Profile"
                   )}
@@ -209,58 +223,73 @@ const MyAccount = () => {
             </form>
           </div>
 
-
-
-          
-
-          {/* CHANGE PASSWORD */}
           <Collapse isOpened={isChangePasswordFormShow}>
             <div className="card bg-white p-5 shadow-md rounded-md">
-              <h2 className="text-[20px] font-[600] mb-4">
-                Change Password
-              </h2>
+              <div className="flex items-center pb-3">
+                <h2 className="text-[20px] font-[600] pb-0">Change Password</h2>
+              </div>
+              <hr />
 
-              <form onSubmit={handleSubmitChangePassword}>
+              <form className="!mt-8" onSubmit={handleSubmitChangePassword}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <TextField
-                    label="Old Password"
-                    type="password"
-                    name="oldPassword"
-                    value={changePassword.oldPassword}
-                    onChange={onchangeInput}
-                    size="small"
-                    fullWidth
-                  />
+                  {
+                    context?.userData?.signUpWithGoogle===false &&
+                     <div className="col">
+                    <TextField
+                      type="password"
+                      label="Old Password"
+                      variant="outlined"
+                      size="small"
+                      className="w-full"
+                      name="oldPassword"
+                      value={changePassword.oldPassword}
+                      disabled={isLoading2}
+                      onChange={onchangeInput}
+                    />
+                  </div>
+                  }
+                 
 
-                  <TextField
-                    label="New Password"
-                    type="password"
-                    name="newPassword"
-                    value={changePassword.newPassword}
-                    onChange={onchangeInput}
-                    size="small"
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Confirm Password"
-                    type="password"
-                    name="confirmPassword"
-                    value={changePassword.confirmPassword}
-                    onChange={onchangeInput}
-                    size="small"
-                    fullWidth
-                  />
+                  <div className="col">
+                    <TextField
+                      type="password"
+                      label="New Password"
+                      variant="outlined"
+                      size="small"
+                      className="w-full"
+                      name="newPassword"
+                      value={changePassword.newPassword}
+                      disabled={isLoading2}
+                      onChange={onchangeInput}
+                    />
+                  </div>
+                    <div className="col">
+                    <TextField
+                      type="password"
+                      label="Confirm Password"
+                      variant="outlined"
+                      size="small"
+                      className="w-full"
+                      name="confirmPassword"
+                      value={changePassword.confirmPassword}
+                      disabled={isLoading2}
+                      onChange={onchangeInput}
+                    />
+                  </div>
                 </div>
 
-                <div className="mt-6">
+               
+
+                <br />
+
+                <div className="flex items-center gap-4">
                   <Button
+                    className="!bg-orange-600 !text-white hover:!bg-black w-[200px] btn"
                     type="submit"
-                    className="!bg-orange-600 !text-white hover:!bg-black"
-                    disabled={isLoading2}
+                    
                   >
                     {isLoading2 ? (
-                      <CircularProgress size={20} color="inherit" />
+                      <CircularProgress color="inherit" />
                     ) : (
                       "Change Password"
                     )}
@@ -276,3 +305,5 @@ const MyAccount = () => {
 };
 
 export default MyAccount;
+
+

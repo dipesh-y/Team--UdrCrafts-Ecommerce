@@ -1,56 +1,16 @@
-# 🧩 Admin Panel — MERN Stack E-Commerce Dashboard
+# React + Vite
 
-This is the **Admin Panel** for the MERN Stack E-Commerce project.  
-It allows the admin to manage **products, categories, users, and orders**, and view detailed reports through a powerful dashboard.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-> 🎥 This admin panel is built by following this full YouTube Playlist (20–27 lectures):  
-> [MERN Admin Panel — Complete Playlist](https://youtube.com/playlist?list=PLhFBHuT4t3aCiG8KjDlgKubRMtwAQTi9I&si=vlfzC2pQUm_OcUun)
+Currently, two official plugins are available:
 
----
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## ⚙️ Tech Stack 
+## React Compiler
 
-**Frontend:**
-- React (Vite)
-- Tailwind CSS
-- Axios
-- React Router DOM
-- Recharts / Chart.js (for graphs)
-- Framer Motion (optional animations)
-- Context API / Redux (for state management)
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-**Backend:**
-- Node.js
-- Express.js
-- MongoDB + Mongoose
-- JWT Authentication
-- Multer / Cloudinary (for image upload)
+## Expanding the ESLint configuration
 
----
-
-## 🧾 Project Overview
-
-The Admin Panel allows you to:
-- 🔐 Login securely as Admin
-- 📊 View analytics (sales, users, revenue)
-- 🛒 Manage Products (add/edit/delete)
-- 📂 Manage Categories
-- 👥 Manage Users (block/unblock)
-- 📦 Track and update Orders
-- ⚙️ Configure site settings
-- 📈 View charts, export reports
-- 📬 Get real-time notifications
-- 💻 Fully responsive dashboard
-
----
-## 👥 Frontend Team
-
-| Name | Role |
-|------|------|
-| Dipesh Yadav | Team Leader / Reviewer |
-| Deepak Singh | Developer |
-| Ariga Charani | Developer |
-| Devendra Singh Panwar | Developer |
-|Tharun  | Developer |
-
----
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

@@ -1,169 +1,147 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import { TbEyeglass2 } from "react-icons/tb";
+import { TbEyeglassOff } from "react-icons/tb";
+import { Link, useNavigate } from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+import { MyContext } from "../../App";
 import CircularProgress from "@mui/material/CircularProgress";
-import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { MyContext } from "../../context/MyContext";
-import { postData } from "../../utils/api";
-
+import { postData } from "../../Utils/Api";
 
 const ForgotPassword = () => {
-  const [isPasswordShow, setIsPasswordShow] = useState(false);
-  const [isPasswordShow2, setIsPasswordShow2] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [formFields, setFormFields] = useState({
-    email: "",
+    const [isLoading, setIsLoading] = useState(false);
+  const [isShowPassword, setIsShowPassword] = useState(false);
+   const [isShowPassword2, setIsShowPassword2] = useState(false);
+const [formFields, setFormFields] = useState({
+   email: localStorage.getItem("userEmail"),
     newPassword: "",
     confirmPassword: "",
   });
+   
 
+  const context = useContext(MyContext);
+  const history = useNavigate();
 
-  const { openAlertBox } = useContext(MyContext);
-
-  useEffect(() => {
-    if (location.state?.email) {
-      setFormFields((prev) => ({
-        ...prev,
-        email: location.state.email,
-      }));
-    } else {
-      navigate("/forgot-password"); // safety redirect
-    }
-  }, []);
-
-
-
-
-  const onChange = (e) => {
+  const onchangeInput = (e) => {
     const { name, value } = e.target;
-    setFormFields((prev) => ({ ...prev, [name]: value }));
+    setFormFields(() => {
+      return {
+        ...formFields,
+        [name]: value,
+      };
+    });
   };
 
+   const valideValue = Object.values(formFields).every((el) => el);
 
+    const handleSubmit = (e) => {
+       e.preventDefault();
+       setIsLoading(true);
+   
+       if (formFields.newPassword === "") {
+         context.alertBox("error", "Please enter new password ");
+         setIsLoading(false);
+         return false;
+       }
+   
+       if (formFields.confirmPassword === "") {
+         context.alertBox("error", "Please enter confirm password ");
+         setIsLoading(false);
+         return false;
+       }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+       if (formFields.confirmPassword !== formFields.newPassword) {
+         context.alertBox("error", "Password and confirm password not match ");
+         setIsLoading(false);
+         return false;
+       }
+   
+        postData(`/api/user/reset-password`,formFields).then((res)=>{
+          if(res?.error===false){
+          localStorage.removeItem("userEmail")
+          localStorage.removeItem("actionType")
+             context.alertBox("success", res?.message);
 
-    if (formFields.newPassword === "") {
-      openAlertBox("error", "Please enter new password");
-      return;
-    }
-
-    if (formFields.confirmPassword === "") {
-      openAlertBox("error", "Please enter confirm password");
-      return;
-    }
-
-    if (formFields.newPassword !== formFields.confirmPassword) {
-      openAlertBox("error", "Passwords do not match");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const res = await postData("/api/user/reset-password", {
-        email: formFields.email,
-        newPassword: formFields.newPassword,
-        confirmPassword: formFields.confirmPassword,
-      });
-
-      if (res?.success) {
-        openAlertBox("success", res.message || "Password reset successful");
-
-        localStorage.removeItem("userEmail");
-        localStorage.removeItem("actionType");
-
-        navigate("/login");
-      } else {
-        openAlertBox("error", res.message || "Reset failed");
-      }
-    } catch (err) {
-      console.error(err);
-      openAlertBox(
-        "error",
-        err.response?.data?.message || "Something went wrong"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-
+          setIsLoading(false);
+          history("/login")
+          }
+          else{
+             context.alertBox("error", res?.message);
+          }
+          
+        })
+   
+     };
+   
+ 
   return (
-    <section className="section py-10">
-      <div className="container">
-        <div className="card shadow-md w-[400px] m-auto rounded-md bg-white p-5 px-10">
-          <h3 className="text-center text-[18px] text-black">
-            Forgot Password
-          </h3>
-
-          <form className="w-full mt-5" onSubmit={handleSubmit}>
-            <div className="form-group w-full mb-5 relative">
-              <TextField
-                type={isPasswordShow ? "text" : "password"}
-                id="password"
-                label=" New Password *"
-                variant="outlined"
-                className="w-full"
-                name="newPassword"
-                value={formFields.newPassword}
-                onChange={onChange}
-              />
-
-              <Button
-                onClick={() => setIsPasswordShow(!isPasswordShow)}
-                className="!absolute top-[8px] !text-black right-[8px] !w-[35px] !h-[35px] !min-w-[35px] !rounded-full"
-              >
-                {isPasswordShow ? (
-                  <IoMdEye className="opacity-75 text-[25px]" />
-                ) : (
-                  <IoMdEyeOff className="opacity-75 text-[25px]" />
-                )}
-              </Button>
+    <>
+      <section className="section py-10 px-4 sm:px-6 lg:px-20">
+        <div className="container mx-auto">
+          <div className="card shadow-md w-full max-w-md sm:max-w-md md:max-w-lg m-auto rounded-md bg-white p-6 sm:px-10">
+            <h3 className="text-center text-lg sm:text-xl md:text-2xl text-black font-[500]">
+              Forgot Password
+            </h3>
+            <form action="" className="w-full !mt-5" onSubmit={handleSubmit}>
+              <div className="form-group w-full mb-5 relative">
+                <TextField
+                  type={isShowPassword === false ? 'password' : 'text'}
+                  id="newPassword"
+                  label="New Password"
+                  variant="outlined"
+                  className="w-full"
+                  name="newPassword"
+                  onChange={onchangeInput}
+                  value={formFields.newPassword}
+                  disabled={isLoading}
+                />
+                <Button
+                  className="absolute top-1 right-1 sm:top-[5px] sm:right-[5px] z-50 w-9 h-9 min-w-[36px] rounded-full text-black"
+                  onClick={() => setIsShowPassword(!isShowPassword)}
+                  type="button"
+                >
+                  {isShowPassword === false ? (
+                    <TbEyeglass2 className="text-xl sm:text-2xl opacity-75" />
+                  ) : (
+                    <TbEyeglassOff className="text-xl sm:text-2xl opacity-75" />
+                  )}
+                </Button>
+              </div>
+              <div className="form-group w-full mb-5 relative">
+                <TextField
+                  id="confirmPassword"
+                  type={isShowPassword2 === false ? 'password' : 'text'}
+                  label="Confirm Password"
+                  variant="outlined"
+                  className="w-full"
+                  name="confirmPassword"
+                  onChange={onchangeInput}
+                  value={formFields.confirmPassword}
+                  disabled={isLoading}
+                />
+                <Button
+                  className="absolute top-1 right-1 sm:top-[5px] sm:right-[5px] z-50 w-9 h-9 min-w-[36px] rounded-full text-black"
+                  onClick={() => setIsShowPassword2(!isShowPassword2)}
+                  type="button"
+                >
+                  {isShowPassword2 === false ? (
+                    <TbEyeglass2 className="text-xl sm:text-2xl opacity-75" />
+                  ) : (
+                    <TbEyeglassOff className="text-xl sm:text-2xl opacity-75" />
+                  )}
+                </Button>
+              </div>
+                     <div className="flex items-center w-full mt-3">
+                <Button type="submit" disabled={!valideValue || isLoading} fullWidth variant="contained" sx={{backgroundColor:'#ff7a00', color:'#fff', '&:hover':{backgroundColor:'#000'}, paddingY:1.5, fontSize:{xs:'16px', sm:'18px'}}}>
+                  {isLoading ? <CircularProgress color="inherit" size={24} /> : 'Change Password'}
+                </Button>
             </div>
-
-            <div className="form-group w-full mb-5 relative">
-              <TextField
-                id="confirm_password"
-                label=" Confirm Password *"
-                variant="outlined"
-                type={isPasswordShow2 ? "text" : "password"}
-                className="w-full"
-                name="confirmPassword"
-                value={formFields.confirmPassword}
-                onChange={onChange}
-              />
-
-              <Button
-                onClick={() => setIsPasswordShow2(!isPasswordShow2)}
-                className="!absolute top-[8px] !text-black right-[8px] !w-[35px] !h-[35px] !min-w-[35px] !rounded-full"
-              >
-                {isPasswordShow2 ? (
-                  <IoMdEye className="opacity-75 text-[25px]" />
-                ) : (
-                  <IoMdEyeOff className="opacity-75 text-[25px]" />
-                )}
-              </Button>
-            </div>
-
-            <Button
-              className="btn-org w-full btn-lg mt-3"
-              type="submit"
-              disabled={isLoading}
-              startIcon={isLoading && <CircularProgress size={18} />}
-            >
-              {isLoading ? "Changing password..." : "Change Password"}
-            </Button>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 

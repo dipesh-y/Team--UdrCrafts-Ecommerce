@@ -1,24 +1,28 @@
-import React, { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.jpg";
-import Search from "../Search";
-import Navigation from "./Navigation";
-import { MyContext } from "../../context/MyContext";
-
+import React, { use, useContext, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import logo from "../../assets/ba-removebg-preview.png";
+import Search from "../Search/index.jsx";
 import Badge from "@mui/material/Badge";
 import { styled } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
+import { FaCartShopping } from "react-icons/fa6";
+import { IoMdGitCompare } from "react-icons/io";
+import { GiTechnoHeart } from "react-icons/gi";
 import Tooltip from "@mui/material/Tooltip";
+import Navigation from "./Navigation/index.jsx";
+import { MyContext } from "../../App";
 import Button from "@mui/material/Button";
+import { FaUserAstronaut } from "react-icons/fa";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Divider from "@mui/material/Divider";
+import { PiBagFill } from "react-icons/pi"; 
+import { TbHeartHandshake } from "react-icons/tb";
+import { SlLogout } from "react-icons/sl";
+import { fetchDataFromApi, postData } from "../../Utils/Api.js";
+import './stle.css'
+import { MdOutlineMenuOpen } from "react-icons/md";
 
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { IoMdGitCompare } from "react-icons/io";
-import { FaRegHeart, FaRegUser } from "react-icons/fa";
-import { IoBagCheckOutline } from "react-icons/io5";
-import { IoMdHeartEmpty } from "react-icons/io";
-import { IoIosLogOut } from "react-icons/io";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -33,160 +37,259 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const context = useContext(MyContext);
-  const navigate = useNavigate();
-  const { userData } = useContext(MyContext);
-
-  const handleMenuOpen = (event) => {
+  const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-
-  const handleMenuClose = () => {
+  const handleClose = () => {
     setAnchorEl(null);
   };
+const [isOpenCatPanel, setIsOpenCatPanel] = useState(false);
+  const context = useContext(MyContext);
+  const history = useNavigate();
 
-  const handleLogout = () => {
+
+  const logout = () => {
+    setAnchorEl(null);
+
+    // Always remove tokens from localStorage to ensure logout on client side
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-
     context.setIsLogin(false);
-    context.openAlertBox("success", "Logged out successfully");
+    context.setUserData(null);
+    context.setUserData(null);
 
-    handleMenuClose();
-    navigate("/");
+    fetchDataFromApi(
+      `/api/user/logout?token=${localStorage.getItem("accessToken")}`,
+      { withCredentials: true }
+    ).then((res) => {
+    }).catch(() => {
+      
+    });
+    context?.setCartData([]);
+    context?.setMyListData([]);
+    history("/");
   };
 
   return (
-    <header className="bg-white">
-      {/* Top strip */}
-      <div className="border-y border-gray-200">
-        <div className="container py-3 flex justify-between">
-          <p className="text-[13px] font-[500]">
-            Get up to 50% off new season styles, limited time only
-          </p>
-
-          <div className="flex gap-4">
-            <Link to="/help-center" className="text-[13px] font-[500] link">
-              Help Center
-            </Link>
-            <Link to="/order-tracking" className="text-[13px] font-[500] link">
-              Order Tracking
-            </Link>
+    <>
+      <header className="bg-white sticky top-0 z-[100] ">
+        <div className="top-strip py-1 sm:py-2 border-t-[1px] border-gray-300 border-b-[1px] ">
+          <div className="container">
+            <div className="flex flex-col sm:flex-row items-center justify-between">
+              <div className="col1 w-full sm:w-[50%] lg:w-[60%] block">
+                <p className="text-[9px] sm:text-[11px] lg:text-[13px] font-[500]">
+                  S-Mal Couture
+                </p>
+              </div>
+              <div className="flex items-center justify-center sm:justify-end col2 w-full sm:w-[50%] lg:w-[40%]">
+                <ul className="flex items-center gap-1 sm:gap-3 lg:gap-4 w-full lg:w-[200px] justify-between ">
+                  <li className="list-none">
+                    <Link
+                      to="/help-center"
+                      className="text-[11px]  sm:text-[11px] lg:text-[13px] link !font-[500] transition"
+                    >
+                      Help Center
+                    </Link>
+                  </li>
+                  <li className="list-none">
+                    <Link
+                      to="/my-order"
+                      className="text-[11px] sm:text-[11px] lg:text-[13px] link !font-[500] transition"
+                    >
+                      Order Tracking
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+        <div className="header !py-1 !mt-2 lg:!mt-3  lg:py-4 border-b-[1px] border-gray-300">
+          <div className="container flex flex-row items-center justify-between gap-0 lg:gap-3 ">
+            <div className="col1 w-[40%] lg:w-[25%] flex items-center">
+               {
+                context?.windowWidth < 992 &&
+                <Button className="text-[25px] !w-[30px]  !h-[30px] !rounded-full !text-gray-700 !min-w-[35px] lg:hidden mr-2 cursor-pointer"  onClick={()=>setIsOpenCatPanel(true)}><MdOutlineMenuOpen size={20}/ ></Button>
+               }
+              <Link to={"/"}>
+                <img
+                  src={logo}
+                  alt="Logo"
+                  className="h-[50px] md:h-[90px] w-[130px] md:w-[190px] object-cover bg-transparent"
+                />
+              </Link>
+            </div>
+            <div className="col2 w-full lg:w-[45%] fixed top-0 left-0 h-full lg:static p-2 lg:p-0 bg-white z-50 hidden lg:block ">
+              <Search />
+            </div>
+           <div className="col3 w-[60%] md:w-[39%] flex items-center justify-end pl-0 md:pl-7 relative">
+              <ul className="flex items-center justify-center md:justify-end gap-2 md:gap-3 w-full flex-wrap">
+  <select 
+  value={context?.currency}
+  onChange={(e) => context?.setCurrency(e.target.value)}
+  className="border px-1 lg:px-2 py-1 rounded cursor-pointer"
+>
+  <option value="INR">₹ INR</option>
+  <option value="USD">$ USD</option>
+  <option value="EUR">€ EUR</option>
 
-      {/* Main header */}
-      <div className="border-b border-gray-200 py-4">
-        <div className="container flex items-center justify-between">
-          <Link to="/" className="w-[25%]">
-            <img src={logo} alt="Logo" />
-          </Link>
+  {/* NEW ONES */}
+  <option value="GBP">£ GBP</option>
+  <option value="AUD">A$ AUD</option>
+  <option value="CAD">C$ CAD</option>
+  <option value="AED">د.إ AED</option>
+</select>
 
-          <div className="w-[40%]">
-            <Search />
-          </div>
-
-          <div className="w-[35%] flex justify-end">
-            <ul className="flex items-center gap-3">
-              {!context.isLogin ? (
-                <li className="text-[15px] font-[500]">
-                  <Link to="/login" className="link">
-                    Login
-                  </Link>{" "}
-                  |{" "}
-                  <Link to="/register" className="link">
-                    Register
-                  </Link>
-                </li>
-              ) : (
-                <>
-                  {/* Account button */}
-                  <Button
-                    onClick={handleMenuOpen}
-                    className="!text-black flex items-center gap-2"
+      
+                {context?.isLogin === false ? (
+                  <li className="list-none">
+                    <Link
+                      to="/login"
+                      className="link transition text-[13px] sm:text-[15px] font-[500]"
+                    >
+                      Login
+                    </Link>
+                    | &nbsp;
+                    <Link
+                      to="/register"
+                      className="link transition text-[13px] sm:text-[15px] font-[500]"
+                    >
+                      Register
+                    </Link>
+                  </li>
+                ) : (
+                  <>
+                  <div
+                    className=" !text-[#000] myAccountWrap flex items-center gap-3 cursor-pointer"
+                    onClick={handleClick}
                   >
-                    <div className="w-[40px] h-[40px] rounded-full border flex items-center justify-center">
-                      <FaRegUser />
-                    </div>
+                    <Button className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !bg-[#f1f1f1]">
+                      <FaUserAstronaut className="text-[20px] text-[rgba(0,0,0,0.7)]" />
+                    </Button>
+                    {
+                      context?.windowWidth > 992 &&
+                      <div className="info flex flex-col ">
+                        <h4 className="text-[14px] leading-5 font-[600] !mb-0 capitalize text-left text-black">
+                          {context?.userData?.name}
+                        </h4>
+                        <span className="text-[13px] text-left text-black">
+                          {context?.userData?.email}
+                        </span>
+                      </div>
+                    }
 
-                    <div className="text-left">
-                      <h4 className="text-[14px] font-[500] leading-4">
-                        {userData?.name || "User"}
-                      </h4>
-                      <span className="text-[13px] opacity-70">
-                        {userData?.email || ""}
-                      </span>
-                    </div>
-                  </Button>
+                  </div>
 
-                  {/* Account menu */}
                   <Menu
                     anchorEl={anchorEl}
+                    id="account-menu"
                     open={open}
-                    onClose={handleMenuClose}
-                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                    onClose={handleClose}
+                    onClick={handleClose}
+                    slotProps={{
+                      paper: {
+                        elevation: 0,
+                        sx: {
+                          overflow: "visible",
+                          filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                          mt: 1.5,
+                          "& .MuiAvatar-root": {
+                            width: 32,
+                            height: 32,
+                            ml: -0.5,
+                            mr: 1,
+                          },
+                          "&::before": {
+                            content: '""',
+                            display: "block",
+                            position: "absolute",
+                            top: 0,
+                            right: 14,
+                            width: 10,
+                            height: 10,
+                            bgcolor: "background.paper",
+                            transform: "translateY(-50%) rotate(45deg)",
+                            zIndex: 0,
+                          },
+                        },
+                      },
+                    }}
                     transformOrigin={{ horizontal: "right", vertical: "top" }}
+                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                   >
-                    <MenuItem onClick={handleMenuClose}>
-                      <Link to="/my-account" className="flex gap-2">
-                        <FaRegUser /> My Account
-                      </Link>
-                    </MenuItem>
+                    <Link to="/my-account" className="w-full block">
+                      <MenuItem
+                        onClick={handleClose}
+                        className="flex gap-2 !py-2"
+                      >
+                        <FaUserAstronaut />{" "}
+                        <span className="text-[14px]">My account </span>
+                      </MenuItem>
+                    </Link>
+                    <Link to="/my-order" className="w-full block">
+                      <MenuItem
+                        onClick={handleClose}
+                        className="flex gap-2 !py-2"
+                      >
+                        <PiBagFill />{" "}
+                        <span className="text-[14px]">Orders</span>
+                      </MenuItem>
+                    </Link>
+                    <Link to="/my-list" className="w-full block">
+                      <MenuItem
+                        onClick={handleClose}
+                        className="flex gap-2 !py-2"
+                      >
+                        <TbHeartHandshake />{" "}
+                        <span className="text-[14px]">My List</span>
+                      </MenuItem>
+                    </Link>
 
-                    <MenuItem onClick={handleMenuClose}>
-                      <Link to="/my-orders" className="flex gap-2">
-                        <IoBagCheckOutline /> Orders
-                      </Link>
+                    <MenuItem onClick={logout} className="flex gap-2 !py-2">
+                      <SlLogout /> <span className="text-[14px]">Logout</span>
                     </MenuItem>
-
-                    <MenuItem onClick={handleMenuClose}>
-                      <Link to="/my-list" className="flex gap-2">
-                        <IoMdHeartEmpty /> My List
-                      </Link>
-                    </MenuItem>
-
-                    <MenuItem onClick={handleLogout} className="flex gap-2">
-                      <IoIosLogOut /> Logout
-                    </MenuItem>
+                    <Divider />
                   </Menu>
-                </>
-              )}
+                   
+                  </>
+                )}
 
-              {/* Compare */}
-              <Tooltip title="Compare">
-                <IconButton>
-                  <StyledBadge badgeContent={0} color="secondary">
-                    <IoMdGitCompare />
-                  </StyledBadge>
-                </IconButton>
-              </Tooltip>
-
-              {/* Wishlist */}
-              <Tooltip title="Wishlist">
-                <IconButton>
-                  <StyledBadge badgeContent={0} color="secondary">
-                    <FaRegHeart />
-                  </StyledBadge>
-                </IconButton>
-              </Tooltip>
-
-              {/* Cart */}
-              <Tooltip title="Cart">
-                <IconButton onClick={() => context.setOpenCartPanel(true)}>
-                  <StyledBadge badgeContent={0} color="secondary">
-                    <MdOutlineShoppingCart />
-                  </StyledBadge>
-                </IconButton>
-              </Tooltip>
-            </ul>
+{context?.windowWidth > 768 && (
+  <li>
+    <Tooltip title="Wishlist" placement="top">
+      <Link to="/my-list">
+        <IconButton aria-label="wishlist">
+          <StyledBadge badgeContent={context?.myListData?.length || 0}>
+            <GiTechnoHeart />
+          </StyledBadge>
+        </IconButton>
+      </Link>
+    </Tooltip>
+  </li>
+)}        
+                <li>
+                  <Tooltip title="Cart" placement="top">
+                    <IconButton
+                      aria-label="cart"
+                      onClick={() => context?.toggleCartPanel(true)}
+                    >
+                      <StyledBadge badgeContent={context?.cartData?.length !==0 ?context?.cartData?.length : 0} color="secondary">
+                        <FaCartShopping  />
+                      </StyledBadge>
+                    </IconButton>
+                  </Tooltip>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Navigation />
-    </header>
+        <Navigation isOpenCatPanel={isOpenCatPanel} setIsOpenCatPanel={setIsOpenCatPanel} />
+      </header>
+    </>
   );
 };
 
 export default Header;
+
+

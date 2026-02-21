@@ -1,214 +1,304 @@
-import { Button } from "@mui/material";
-import React,{useContext, useState} from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { RxDashboard } from "react-icons/rx";
-import { FaRegImage } from "react-icons/fa";
-import { FiUsers } from "react-icons/fi";
-import { RiProductHuntLine } from "react-icons/ri";
-import { TbCategory } from "react-icons/tb";
-import { IoBagCheckOutline } from "react-icons/io5";
-import { IoMdLogOut } from "react-icons/io";
+import logo from '../../assets/logo.png'
+import Button from "@mui/material/Button";
+import { MdSpaceDashboard } from "react-icons/md";
+import { MdGroups } from "react-icons/md";
+import { PiSlideshowBold } from "react-icons/pi";
+import { MdCategory } from "react-icons/md";
+import { SiPiapro } from "react-icons/si";
+import { SiTicktick } from "react-icons/si";
+import { HiOutlineLogout } from "react-icons/hi";
 import { FaAngleDown } from "react-icons/fa6";
-import { Collapse } from "react-collapse";
-import { RiMenu2Line } from "react-icons/ri";
+import { Collapse } from 'react-collapse';
 import { PiDiamondLight } from "react-icons/pi";
-import MyContext from "../../context/MyContext";
+import { MyContext } from "../../App";
 
+const Sidebar = () => {
 
-const Sidebar = ({ toggleSidebar }) => {
+  const context = useContext(MyContext); 
+  const { isSidebarOpen, sidebarWidth } = context;     
+
   const [submenuIndex, setSubmenuIndex] = useState(null);
+
   const isOpenSubMenu = (index) => {
-    if(submenuIndex===index){
-      setSubmenuIndex(null);
-    }
-    else{
-      setSubmenuIndex(index);
-    }
+    setSubmenuIndex(submenuIndex === index ? null : index);
   };
 
-  const context = useContext(MyContext)
-
   return (
-      <div className="sidebar fixed top-0 left-0 bg-[#fff] h-screen w-[18%] border-r border-[rgba(0,0,0,0.1)] shadow-md transition-all duration-300">
-        <div className="relative w-full">
-          <div className="py-2 w-full px-4">
-            <Link to="/">
-              <img
-                src="https://isomorphic-furyroad.vercel.app/_next/static/media/logo.a795e14a.svg"
-                className="w-[0px]"
-                alt="Logo"
-              />
-            </Link>
-          </div>
-        </div>
-        <ul className="mt-4 px-4">
-          <li>
-            <Link to="/">
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]">
-              <RxDashboard className="text-[18px]" /> <span>Dashboard</span>
-            </Button>
-            </Link>
-          </li>
+   <div 
+  className={`sidebar bg-white border-r border-gray-200 py-2 px-4 w-full h-full overflow-y-auto transition-all`}
+>
+
+      {/* Logo */}
+      <div className="py-2 w-full flex justify-center border-b border-[rgba(0,0,0,0.1)] shrink-0 rounded-2xl" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} 
+      >
+        <Link to="/">
+          <img
+            src={logo}
+            alt="UDR Crafts Logo"
+            className="w-[190px] h-[130px] object-contain"
+          />
+        </Link>
+      </div>
+
+      {/* Menu */}
+      <div className="flex-1 overflow-y-auto px-3">
+        <ul className="mt-4 overflow-y-scroll max-h-[80vh]">
 
           <li>
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]" 
-            onClick={() => isOpenSubMenu(1)}>
-              <FaRegImage className="text-[18px]" /> <span>Home Slide</span>
-              <span
-                className="ml-auto w-[30px] h-[30px] flex items-center justify-center"
-                
-              >
-                <FaAngleDown className={`transition-all ${submenuIndex === 1 ? 'rotate-180' : ''}`}/>
-              </span>
-            </Button>
-            <Collapse isOpened={submenuIndex===1 ? true:false}>
-              <ul className="w-full">
-                <li className="w-full">
-                <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3"> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
-                  Add Home Banner Slides
-                </Button>
-                </li>
-
-                <li className="w-full">
-                <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3"> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
-                  Home Banner List
-                </Button>
-                </li>
-              </ul> 
-
-            </Collapse>
-
-
-
-            </li>
-
-            <li>
-              <Link to="/users">
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]">
-              <FiUsers className="text-[18px]" /> <span>Users</span>
-            </Button>
+            <Link to="/" 
+            onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }}
+      >
+              <Button className="w-full !capitalize !items-center !justify-start !text-[16px] !font-[600] !text-black/80 !py-3 !px-4 !rounded-md hover:!bg-black/5 transition-all gap-3">
+                <MdSpaceDashboard className="text-[23px]" />
+                <span> Dashboard </span>
+              </Button>
             </Link>
           </li>
 
           <li>
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]" 
-            onClick={() => isOpenSubMenu(3)}>
-              <FaRegImage className="text-[18px]" /> <span>Products</span>
-              <span
-                className="ml-auto w-[30px] h-[30px] flex items-center justify-center"
-                
-              >
-                <FaAngleDown className={`transition-all ${submenuIndex === 3 ? 'rotate-180' : ''}`}/>
+            <Link to="/users" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} >
+              <Button className="w-full !capitalize !items-center !justify-start !text-[16px] !font-[600] !text-black/80 !py-3 !px-4 !rounded-md hover:!bg-black/5 transition-all gap-3">
+                <MdGroups className="text-[25px]" />
+                <span> Users </span>
+              </Button>
+            </Link>
+          </li>
+
+          {/* Home Banner */}
+          <li>
+            <Button
+              className="w-full !capitalize !items-center !justify-start !text-[16px] !font-[600] !text-black/80 !py-3 !px-4 !rounded-md hover:!bg-black/5 transition-all gap-3"
+              onClick={() => isOpenSubMenu(2)}
+            >
+              <PiSlideshowBold className="text-[23px]" />
+              <span> Home Banner </span>
+              <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
+                <FaAngleDown className={`transition-all ${submenuIndex === 2 ? "rotate-180" : ""}`} />
               </span>
             </Button>
-            <Collapse isOpened={submenuIndex===3 ? true:false}>
+
+            <Collapse isOpened={submenuIndex === 2}>
               <ul className="w-full">
-                <li className="w-full">
-                  <Link to="/products">
-                    <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3"> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
-                      Product List
+                <li>
+                  <Link to="/homeSlider/list"
+                  onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} 
+                  >
+                    <Button className="w-full !capitalize !justify-start !text-[14px] !font-[400] !text-black/80 !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3">
+                      <PiDiamondLight />
+                      Home Banner List
                     </Button>
                   </Link>
                 </li>
 
-                <li className="w-full">
-                 
-                  <Button className="w-full !capitalize !items-center !justify-start !text-[14px] !font-[400] !text-[rgba(0,0,0,0.8)] !py-3 !px-4 !pl-10 !rounded-md hover:!bg-[rgba(0,0,0,0.05)] transition-all gap-3" onClick={()=>context.setIsOpenFullScreenPanel({
-                      open: true,
-                      model:"Add Product"
-                    })}>
-                      <PiDiamondLight />
-                      <span>
-                        Product Upload
-                      </span>
-                    </Button>
-                
+                <li>
+                  <Button
+                    className="w-full !capitalize !justify-start !text-[14px] !font-[400] !text-black/80 !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3"
+                    onClick={() =>{
+                      context.setIsOpenFullScreenPanel({
+                        open: true,
+                        model: "Add Home Slide",
+                      })
+                       context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+                       setSubmenuIndex(null);
+                    }
+                      
+                    }
+                  >
+                    <PiDiamondLight />
+                    Add New Banner
+                  </Button>
                 </li>
-              </ul> 
-
+              </ul>
             </Collapse>
-            </li>
+          </li>
 
-
+          {/* Category */}
           <li>
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]" 
-            onClick={() => isOpenSubMenu(4)}>
-              <TbCategory className="text-[18px]" /> <span>Category</span>
-              <span
-                className="ml-auto w-[30px] h-[30px] flex items-center justify-center"
-                
-              >
-                <FaAngleDown className={`transition-all ${submenuIndex === 4 ? 'rotate-180' : ''}`}/>
+            <Button
+              className="w-full !capitalize !items-center !justify-start !text-[16px] !font-[600] !text-black/80 !py-3 !px-4 !rounded-md hover:!bg-black/5 transition-all gap-3"
+              onClick={() => isOpenSubMenu(3)}
+            >
+              <MdCategory className="text-[23px]" />
+              <span> Category </span>
+              <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
+                <FaAngleDown className={`transition-all ${submenuIndex === 3 ? "rotate-180" : ""}`} />
               </span>
             </Button>
-            <Collapse isOpened={submenuIndex===4 ? true:false}>
+
+            <Collapse isOpened={submenuIndex === 3}>
               <ul className="w-full">
-                <li className="w-full">
-                  <Link to="/category/list">
-                    <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3"> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
+                <li>
+                  <Link to="/category/list" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} >
+                    <Button className="w-full !justify-start !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3">
+                      <PiDiamondLight />
                       Category List
                     </Button>
                   </Link>
                 </li>
 
-                <li className="w-full">
-                  
-                    <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3 "   onClick={() =>
-                  context?.setIsOpenFullScreenPanel({
-                    open: true,
-                    model: "Add New Category",
-                  })
-                }> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
-                      Add a Category
-                    </Button>
-                  
-                </li>
-
-                <li className="w-full">
-                  <Link to="/subCategory/list">
-                    <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3"> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
+                <li>
+                  <Link to="/subCategory/list" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} >
+                    <Button className="w-full !justify-start !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3">
+                      <PiDiamondLight />
                       Sub Category List
                     </Button>
                   </Link>
                 </li>
 
-                <li className="w-full">
-                  
-                <Button className="!text-[rgba(0,0,0,0.7)] !capitalize !justify-start !w-full !text-[13px] !font-[500] !pl-9 flex gap-3" onClick={() =>
-                  context?.setIsOpenFullScreenPanel({
-                    open: true,
-                    model: "Add New Sub Category",
-                  })
-                }> <span className="block w-[5px] h-[10px] rounded-full bg-[rgba(0,0,0,0.1)]"></span>
-                  Add a Sub Category
-                </Button>
-              
+                <li>
+                  <Button
+                    className="w-full !justify-start !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3"
+                    onClick={() =>{
+                         context.setIsOpenFullScreenPanel({
+                        open: true,
+                        model: "Add New Sub Category",
+                      })
+                       context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+                       setSubmenuIndex(null);
+                    }
+                   
+                    }
+                  >
+                    <PiDiamondLight />
+                    New Sub Category
+                  </Button>
                 </li>
 
-
-
-              </ul> 
-
+                <li>
+                  <Button
+                    className="w-full !justify-start !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3"
+                    onClick={() =>{
+                        context.setIsOpenFullScreenPanel({
+                        open: true,
+                        model: "Add New Category",
+                      }) 
+                      context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+                      setSubmenuIndex(null);
+                    }
+                    
+                    }
+                  >
+                    <PiDiamondLight />
+                    Add New Category
+                  </Button>
+                </li>
+              </ul>
             </Collapse>
-           
-          </li>
-          <li>
-            <Link to="/orders">
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]">
-              <IoBagCheckOutline className="text-[20px]" /> <span>Orders</span>
-            </Button>
-          </Link>
           </li>
 
+          {/* Products */}
           <li>
-            <Button className="w-full !capitalize !justify-start flex gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:bg-[#f1f1f1]">
-              <IoMdLogOut className="text-[20px]" /> <span>Logout</span>
+            <Button
+              className="w-full !capitalize !items-center !justify-start !text-[16px] !font-[600] !text-black/80 !py-3 !px-4 hover:!bg-black/5 gap-3"
+              onClick={() => isOpenSubMenu(4)}
+            >
+              <SiPiapro className="text-[23px]" />
+              <span> Products </span>
+              <FaAngleDown className={`ml-auto transition-all ${submenuIndex === 4 ? "rotate-180" : ""}`} />
             </Button>
+
+            <Collapse isOpened={submenuIndex === 4}>
+              <ul className="w-full">
+                <li>
+                  <Link to="/products" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }}  >
+                    <Button className="w-full !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3">
+                      <PiDiamondLight />
+                      Product List
+                    </Button>
+                  </Link>
+                </li>
+
+                <li>
+                  <Button
+                    className="w-full !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3"
+                    onClick={() =>{
+                         context.setIsOpenFullScreenPanel({
+                        open: true,
+                        model: "Add Product",
+                      })
+                      context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+                      setSubmenuIndex(null);
+                    }
+                   
+                    }
+                  >
+                    <PiDiamondLight />
+                    Product Upload
+                  </Button>
+                </li>
+
+                <li>
+                  <Link to="/product/addSize" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} >
+                    <Button className="w-full !text-[14px] !py-3 !px-4 !pl-10 hover:!bg-black/5 gap-3">
+                      <PiDiamondLight />
+                      Product Size
+                    </Button>
+                  </Link>
+                </li>
+              </ul>
+            </Collapse>
           </li>
+
+          {/* Orders */}
+          <li>
+            <Link to="/orders" onClick={()=>{
+        context?.windowWidth < 992 && context?.setIsSidebarOpen(false)
+        setSubmenuIndex(null);
+      }} >
+              <Button className="w-full !text-[16px] !font-[600] !py-3 !px-4 hover:!bg-black/5 gap-3">
+                <SiTicktick className="text-[23px]" />
+                Orders
+              </Button>
+            </Link>
+          </li>
+
         </ul>
       </div>
 
+      {/* Logout */}
+      <div className="shrink-0 px-3 py-2 border-t border-[rgba(0,0,0,0.1)]">
+        <Link to="/logout">
+          <Button className="w-full !text-[16px] !font-[600] !py-3 !px-4 hover:!bg-black/5 gap-3">
+            <HiOutlineLogout className="text-[25px]" />
+            Logout
+          </Button>
+        </Link>
+      </div>
+       <div className="sidebarOverlay fixed top-0 left-0 bg-[rgba(0,0,0,1)]  w-full h-fullz-[49] pointer-events-auto sm:pointer-events-none "
+       onClick={()=>context?.isSidebarOpen(false)}
+       ></div>
+    </div>
+
+   
   );
 };
 
 export default Sidebar;
+
+
